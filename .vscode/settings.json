@@ -7,6 +7,6 @@
     "python.testing.pytestEnabled": true,
     "sonarlint.connectedMode.project": {
         "connectionId": "proves-kit",
-        "projectKey": "proveskit_circuitpy_flight_software"
+        "projectKey": "proveskit_circuitpython_rp2040_v5"
     }
 }
