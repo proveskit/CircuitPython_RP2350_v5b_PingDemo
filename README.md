@@ -1,7 +1,7 @@
 # # ProvesKit RP2040 v5 CircuitPython Flight Software
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![CI](https://github.com/texas-state-space-lab/pikvm-tailscale-certificate-renewer/actions/workflows/ci.yaml/badge.svg)
+![CI](https://github.com/proveskit/CircuitPython_RP2040_v5/actions/workflows/ci.yaml/badge.svg)
 
 Software for CircuitPython flight software in the PROVES Kit.
 
