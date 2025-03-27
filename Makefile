@@ -13,10 +13,19 @@ help: ## Display this help.
 	@$(UV) venv
 	@$(UV) pip install --requirement pyproject.toml
 
+LOCAL_PYSQUARED ?= ""
+
 .PHONY: download-libraries
 download-libraries: .venv ## Download the required libraries
 	@echo "Downloading libraries..."
-	@$(UV) pip install --requirement lib/requirements.txt --target lib --no-deps --upgrade --quiet
+	@$(UV) pip install --requirement lib/requirements.txt --target lib --no-deps --upgrade --quiet; \
+
+	@if [ -n "$(LOCAL_PYSQUARED)" ]; then \
+		$(UV) pip install $(LOCAL_PYSQUARED) --target lib --no-deps --upgrade --quiet; \
+	else \
+		$(UV) pip install git+https://github.com/proveskit/pysquared --target lib --no-deps --upgrade --quiet; \
+	fi
+
 	@rm -rf lib/*.dist-info
 	@rm -rf lib/.lock
 
@@ -28,16 +37,6 @@ pre-commit-install: uv
 .PHONY: fmt
 fmt: pre-commit-install ## Lint and format files
 	$(UVX) pre-commit run --all-files
-
-.PHONY: test
-test: .venv download-libraries ## Run tests
-ifeq ($(TEST_SELECT),ALL)
-	$(UV) run coverage run --rcfile=pyproject.toml -m pytest tests/unit
-else
-	$(UV) run coverage run --rcfile=pyproject.toml -m pytest -m "not slow" tests/unit
-endif
-	@$(UV) run coverage html --rcfile=pyproject.toml > /dev/null
-	@$(UV) run coverage xml --rcfile=pyproject.toml > /dev/null
 
 BOARD_MOUNT_POINT ?= ""
 VERSION ?= $(shell git tag --points-at HEAD --sort=-creatordate < /dev/null | head -n 1)
