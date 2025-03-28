@@ -64,7 +64,7 @@ build: download-libraries mpy-cross ## Build the project, store the result in th
 	@echo "__version__ = '$(VERSION)'" > artifacts/proves/version.py
 	$(call compile_mpy)
 	$(call rsync_to_dest,.,artifacts/proves/)
-	@find artifacts/proves/lib -name '*.py' -type f -delete
+	@$(UV) run python -c "import os; [os.remove(os.path.join(root, file)) for root, _, files in os.walk('artifacts/proves/lib') for file in files if file.endswith('.py')]"
 	@echo "Creating artifacts/proves.zip"
 	@zip -r artifacts/proves.zip artifacts/proves > /dev/null
 
@@ -128,8 +128,5 @@ endif
 endif
 
 define compile_mpy
-	@find lib -name '*.py' -print0 | while IFS= read -r -d '' file; do \
-		echo "Compiling $$file to .mpy..."; \
-		$(MPY_CROSS) $$file; \
-	done
+	@$(UV) run python -c "import os, subprocess; [subprocess.run(['$(MPY_CROSS)', os.path.join(root, file)]) for root, _, files in os.walk('lib') for file in files if file.endswith('.py')]" || exit 1
 endef
