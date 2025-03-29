@@ -16,7 +16,7 @@ help: ## Display this help.
 LOCAL_PYSQUARED ?= ""
 
 .PHONY: download-libraries
-download-libraries: .venv ## Download the required libraries
+download-libraries: uv .venv ## Download the required libraries
 	@echo "Downloading libraries..."
 	@$(UV) pip install --requirement lib/requirements.txt --target lib --no-deps --upgrade --quiet; \
 
@@ -33,6 +33,10 @@ download-libraries: .venv ## Download the required libraries
 pre-commit-install: uv
 	@echo "Installing pre-commit hooks..."
 	@$(UVX) pre-commit install > /dev/null
+
+.PHONY: sync-time
+sync-time: uv ## Syncs th time from your computer to the PROVES Kit board
+	$(UVX) --from git+https://github.com/proveskit/sync-time@1.0.0 sync-time
 
 .PHONY: fmt
 fmt: pre-commit-install ## Lint and format files
