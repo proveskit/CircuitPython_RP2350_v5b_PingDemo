@@ -1,3 +1,6 @@
+PYSQUARED_VERSION ?= v2.0.0-alpha-25w14
+PYSQUARED ?= git+https://github.com/proveskit/pysquared@$(PYSQUARED_VERSION)
+
 .PHONY: all
 all: .venv download-libraries pre-commit-install help
 
@@ -13,18 +16,11 @@ help: ## Display this help.
 	@$(UV) venv
 	@$(UV) pip install --requirement pyproject.toml
 
-LOCAL_PYSQUARED ?= ""
-
 .PHONY: download-libraries
 download-libraries: uv .venv ## Download the required libraries
 	@echo "Downloading libraries..."
-	@$(UV) pip install --requirement lib/requirements.txt --target lib --no-deps --upgrade --quiet; \
-
-	@if [ -n "$(LOCAL_PYSQUARED)" ]; then \
-		$(UV) pip install $(LOCAL_PYSQUARED) --target lib --no-deps --upgrade --quiet; \
-	else \
-		$(UV) pip install git+https://github.com/proveskit/pysquared --target lib --no-deps --upgrade --quiet; \
-	fi
+	@$(UV) pip install --requirement lib/requirements.txt --target lib --no-deps --upgrade --quiet
+	@$(UV) pip --no-cache install $(PYSQUARED) --target lib --no-deps --upgrade --quiet
 
 	@rm -rf lib/*.dist-info
 	@rm -rf lib/.lock
@@ -83,7 +79,7 @@ define rsync_to_dest
 		exit 1; \
 	fi
 
-	@rsync -avh $(1)/config.json artifacts/proves/version.py $(1)/*.py $(1)/lib --exclude='requirements.txt' --exclude='__pycache__' $(2) --delete --times --checksum
+	@rsync -avh $(1)/config.json artifacts/proves/version.py $(1)/*.py $(1)/lib --exclude=".*" --exclude='requirements.txt' --exclude='__pycache__' $(2) --delete --times --checksum
 endef
 
 ##@ Build Tools

@@ -4,7 +4,7 @@ import lib.pysquared.nvm.register as register
 from lib.pysquared.config.config import Config
 from lib.pysquared.logger import Logger
 from lib.pysquared.nvm.counter import Counter
-from lib.pysquared.pysquared import Satellite
+from lib.pysquared.satellite import Satellite
 from version import __version__
 
 logger: Logger = Logger(

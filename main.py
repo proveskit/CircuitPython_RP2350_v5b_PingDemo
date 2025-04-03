@@ -15,7 +15,8 @@ import digitalio
 import microcontroller
 
 try:
-    from board_definitions import proveskit_rp2040_v4 as board
+    # from board_definitions import proveskit_rp2040_v4 as board
+    raise ImportError
 except ImportError:
     import board
 
@@ -23,19 +24,23 @@ import os
 
 import lib.pysquared.functions as functions
 import lib.pysquared.nvm.register as register
-import lib.pysquared.pysquared as pysquared
+from lib.pysquared.cdh import CommandDataHandler
 from lib.pysquared.config.config import Config
+from lib.pysquared.hardware.busio import _spi_init, initialize_i2c_bus
 from lib.pysquared.hardware.digitalio import initialize_pin
-from lib.pysquared.hardware.rfm9x.factory import RFM9xFactory
-from lib.pysquared.hardware.rfm9x.manager import RFM9xManager
+from lib.pysquared.hardware.imu.manager.lsm6dsox import LSM6DSOXManager
+from lib.pysquared.hardware.magnetometer.manager.lis2mdl import LIS2MDLManager
+from lib.pysquared.hardware.radio.manager.sx126x import SX126xManager
 from lib.pysquared.logger import Logger
 from lib.pysquared.nvm.counter import Counter
 from lib.pysquared.nvm.flag import Flag
-from lib.pysquared.rtc.rtc_common import RTC
+from lib.pysquared.rtc.manager.microcontroller import MicrocontrollerManager
+from lib.pysquared.satellite import Satellite
 from lib.pysquared.sleep_helper import SleepHelper
+from lib.pysquared.watchdog import Watchdog
 from version import __version__
 
-RTC.init()
+rtc = MicrocontrollerManager()
 
 logger: Logger = Logger(
     error_counter=Counter(index=register.ERRORCNT, datastore=microcontroller.nvm),
@@ -47,6 +52,7 @@ logger.info(
     hardware_version=os.uname().version,
     software_version=__version__,
 )
+
 loiter_time: int = 5
 
 try:
@@ -54,33 +60,66 @@ try:
         logger.info(f"Code Starting in {loiter_time-i} seconds")
         time.sleep(1)
 
+    watchdog = Watchdog(logger, board.WDT_WDI)
+    watchdog.pet()
+
     logger.debug("Initializing Config")
     config: Config = Config("config.json")
 
-    c = pysquared.Satellite(config, logger, __version__)
-    c.watchdog_pet()
-    sleep_helper = SleepHelper(c, logger)
-
-    radio_manager = RFM9xManager(
+    # TODO(nateinaction): fix spi init
+    spi0 = _spi_init(
         logger,
-        Flag(index=register.FLAG, bit_index=7, datastore=microcontroller.nvm),
-        RFM9xFactory(
-            c.spi0,
-            initialize_pin(logger, board.SPI0_CS0, digitalio.Direction.OUTPUT, True),
-            initialize_pin(logger, board.RF1_RST, digitalio.Direction.OUTPUT, True),
-            config.radio,
-        ),
-        config.is_licensed,
+        board.SPI1_SCK,
+        board.SPI1_MOSI,
+        board.SPI1_MISO,
     )
 
-    f = functions.functions(c, logger, config, sleep_helper, radio_manager)
+    radio = SX126xManager(
+        logger,
+        config.radio,
+        Flag(index=register.FLAG, bit_index=7, datastore=microcontroller.nvm),
+        spi0,
+        initialize_pin(logger, board.SPI0_CS0, digitalio.Direction.OUTPUT),
+        initialize_pin(logger, board.RF2_IO0, digitalio.Direction.INPUT),
+        initialize_pin(logger, board.RF1_RST, digitalio.Direction.OUTPUT),
+        initialize_pin(logger, board.RF2_IO4, digitalio.Direction.INPUT),
+    )
+
+    i2c1 = initialize_i2c_bus(
+        logger,
+        board.I2C1_SCL,
+        board.I2C1_SDA,
+        100000,
+    )
+
+    magnetometer = LIS2MDLManager(logger, i2c1)
+
+    imu = LSM6DSOXManager(logger, i2c1, 0x6B)
+
+    c = Satellite(logger, config)
+
+    sleep_helper = SleepHelper(c, logger, watchdog)
+
+    cdh = CommandDataHandler(config, logger, radio)
+
+    f = functions.functions(
+        c,
+        logger,
+        config,
+        sleep_helper,
+        radio,
+        magnetometer,
+        imu,
+        watchdog,
+        cdh,
+    )
 
     def initial_boot():
-        c.watchdog_pet()
+        watchdog.pet()
         f.beacon()
-        c.watchdog_pet()
+        watchdog.pet()
         f.listen()
-        c.watchdog_pet()
+        watchdog.pet()
 
     try:
         c.boot_count.increment()
@@ -102,10 +141,10 @@ try:
     def send_imu_data():
         logger.info("Looking to get imu data...")
         IMUData = []
-        c.watchdog_pet()
+        watchdog.pet()
         logger.info("IMU has baton")
         IMUData = f.get_imu_data()
-        c.watchdog_pet()
+        watchdog.pet()
         f.send(IMUData)
 
     def main():
@@ -118,7 +157,7 @@ try:
         f.listen_loiter()
 
         f.all_face_data()
-        c.watchdog_pet()
+        watchdog.pet()
         f.send_face()
 
         f.listen_loiter()
@@ -133,13 +172,13 @@ try:
 
     def critical_power_operations():
         initial_boot()
-        c.watchdog_pet()
+        watchdog.pet()
 
         sleep_helper.long_hibernate()
 
     def minimum_power_operations():
         initial_boot()
-        c.watchdog_pet()
+        watchdog.pet()
 
         sleep_helper.short_hibernate()
 
@@ -150,19 +189,15 @@ try:
             c.check_reboot()
 
             if c.power_mode == "critical":
-                c.rgb = (0, 0, 0)
                 critical_power_operations()
 
             elif c.power_mode == "minimum":
-                c.rgb = (255, 0, 0)
                 minimum_power_operations()
 
             elif c.power_mode == "normal":
-                c.rgb = (255, 255, 0)
                 main()
 
             elif c.power_mode == "maximum":
-                c.rgb = (0, 255, 0)
                 main()
 
             else:
@@ -175,9 +210,6 @@ try:
         microcontroller.reset()
     finally:
         logger.info("Going Neutral!")
-
-        c.rgb = (0, 0, 0)
-        c.hardware["WDT"] = False
 
 except Exception as e:
     logger.critical("An exception occured within main.py", e)
