@@ -79,10 +79,10 @@ try:
         config.radio,
         Flag(index=register.FLAG, bit_index=7, datastore=microcontroller.nvm),
         spi0,
-        initialize_pin(logger, board.SPI0_CS0, digitalio.Direction.OUTPUT),
-        initialize_pin(logger, board.RF2_IO0, digitalio.Direction.INPUT),
-        initialize_pin(logger, board.RF1_RST, digitalio.Direction.OUTPUT),
-        initialize_pin(logger, board.RF2_IO4, digitalio.Direction.INPUT),
+        initialize_pin(logger, board.SPI0_CS0, digitalio.Direction.OUTPUT, True),
+        board.RF2_IO0,
+        initialize_pin(logger, board.RF1_RST, digitalio.Direction.OUTPUT, True),
+        board.RF2_IO4,
     )
 
     i2c1 = initialize_i2c_bus(
@@ -143,9 +143,9 @@ try:
         IMUData = []
         watchdog.pet()
         logger.info("IMU has baton")
-        IMUData = f.get_imu_data()
+        IMUData = imu.get_gyro_data()
         watchdog.pet()
-        f.send(IMUData)
+        radio.send(IMUData)
 
     def main():
         f.beacon()

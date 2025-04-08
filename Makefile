@@ -1,4 +1,4 @@
-PYSQUARED_VERSION ?= v2.0.0-alpha-25w14
+PYSQUARED_VERSION ?= v2.0.0-alpha-25w14-3
 PYSQUARED ?= git+https://github.com/proveskit/pysquared@$(PYSQUARED_VERSION)
 
 .PHONY: all
@@ -32,7 +32,7 @@ pre-commit-install: uv
 
 .PHONY: sync-time
 sync-time: uv ## Syncs the time from your computer to the PROVES Kit board
-	$(UVX) --from git+https://github.com/proveskit/sync-time@1.0.0 sync-time
+	$(UVX) --from git+https://github.com/proveskit/sync-time@1.0.1 sync-time
 
 .PHONY: fmt
 fmt: pre-commit-install ## Lint and format files
