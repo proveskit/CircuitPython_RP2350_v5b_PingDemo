@@ -76,10 +76,14 @@ try:
 
     i2c1 = initialize_i2c_bus(
         logger,
-        board.I2C1_SCL,
-        board.I2C1_SDA,
+        board.SCL1,
+        board.SDA1,
         100000,
     )
+
+    c = Satellite(logger, config)
+
+    sleep_helper = SleepHelper(c, logger, watchdog)
 
     radio = RFM9xManager(
         logger,
@@ -93,10 +97,6 @@ try:
     magnetometer = LIS2MDLManager(logger, i2c1)
 
     imu = LSM6DSOXManager(logger, i2c1, 0x6B)
-
-    c = Satellite(logger, config)
-
-    sleep_helper = SleepHelper(c, logger, watchdog)
 
     cdh = CommandDataHandler(config, logger, radio)
 
