@@ -3,9 +3,9 @@
 # Created By: Michael Pham
 
 """
-Built for the PySquared FC Board
-Version: 2.0.0
-Published: Nov 19, 2024
+Built for the PySquared V5a FC Board
+Version: X.X.X
+Published:
 """
 
 import gc
@@ -30,7 +30,7 @@ from lib.pysquared.hardware.busio import _spi_init, initialize_i2c_bus
 from lib.pysquared.hardware.digitalio import initialize_pin
 from lib.pysquared.hardware.imu.manager.lsm6dsox import LSM6DSOXManager
 from lib.pysquared.hardware.magnetometer.manager.lis2mdl import LIS2MDLManager
-from lib.pysquared.hardware.radio.manager.sx126x import SX126xManager
+from lib.pysquared.hardware.radio.manager.rfm9x import RFM9xManager
 from lib.pysquared.logger import Logger
 from lib.pysquared.nvm.counter import Counter
 from lib.pysquared.nvm.flag import Flag
@@ -74,22 +74,20 @@ try:
         board.SPI1_MISO,
     )
 
-    radio = SX126xManager(
-        logger,
-        config.radio,
-        Flag(index=register.FLAG, bit_index=7, datastore=microcontroller.nvm),
-        spi0,
-        initialize_pin(logger, board.SPI0_CS0, digitalio.Direction.OUTPUT, True),
-        board.RF2_IO0,
-        initialize_pin(logger, board.RF1_RST, digitalio.Direction.OUTPUT, True),
-        board.RF2_IO4,
-    )
-
     i2c1 = initialize_i2c_bus(
         logger,
         board.I2C1_SCL,
         board.I2C1_SDA,
         100000,
+    )
+
+    radio = RFM9xManager(
+        logger,
+        config.radio,
+        Flag(index=register.FLAG, bit_index=7, datastore=microcontroller.nvm),
+        spi0,
+        initialize_pin(logger, board.SPI0_CS0, digitalio.Direction.OUTPUT, True),
+        initialize_pin(logger, board.RF1_RST, digitalio.Direction.OUTPUT, True),
     )
 
     magnetometer = LIS2MDLManager(logger, i2c1)
