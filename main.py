@@ -24,9 +24,7 @@ import os
 
 import lib.pysquared.functions as functions
 import lib.pysquared.nvm.register as register
-
-### This is Hacky V5a Devel Stuff###
-import sx1280
+import sx1280  ### This is Hacky V5a Devel Stuff###
 from lib.pysquared.cdh import CommandDataHandler
 from lib.pysquared.config.config import Config
 from lib.pysquared.hardware.busio import _spi_init, initialize_i2c_bus
@@ -42,8 +40,6 @@ from lib.pysquared.satellite import Satellite
 from lib.pysquared.sleep_helper import SleepHelper
 from lib.pysquared.watchdog import Watchdog
 from version import __version__
-
-### This is Hacky V5a Devel Stuff###
 
 rtc = MicrocontrollerManager()
 
