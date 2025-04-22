@@ -24,6 +24,9 @@ import os
 
 import lib.pysquared.functions as functions
 import lib.pysquared.nvm.register as register
+
+### This is Hacky V5a Devel Stuff###
+import sx1280
 from lib.pysquared.cdh import CommandDataHandler
 from lib.pysquared.config.config import Config
 from lib.pysquared.hardware.busio import _spi_init, initialize_i2c_bus
@@ -39,6 +42,8 @@ from lib.pysquared.satellite import Satellite
 from lib.pysquared.sleep_helper import SleepHelper
 from lib.pysquared.watchdog import Watchdog
 from version import __version__
+
+### This is Hacky V5a Devel Stuff###
 
 rtc = MicrocontrollerManager()
 
@@ -69,10 +74,40 @@ try:
     # TODO(nateinaction): fix spi init
     spi0 = _spi_init(
         logger,
+        board.SPI0_SCK,
+        board.SPI0_MOSI,
+        board.SPI0_MISO,
+    )
+
+    spi1 = _spi_init(
+        logger,
         board.SPI1_SCK,
         board.SPI1_MOSI,
         board.SPI1_MISO,
     )
+
+    ### This is Hacky V5a Devel Stuff###
+    spi1_cs0 = digitalio.DigitalInOut(board.SPI1_CS0)
+    rf2_rst = digitalio.DigitalInOut(board.RF2_RST)
+    rf2_busy = digitalio.DigitalInOut(board.RF2_IO0)
+
+    tx_en = digitalio.DigitalInOut(board.RF2_TX_EN)
+    rx_en = digitalio.DigitalInOut(board.RF2_RX_EN)
+    tx_en.direction = digitalio.Direction.OUTPUT
+    rx_en.direction = digitalio.Direction.OUTPUT
+
+    radio2 = sx1280.SX1280(
+        spi1, spi1_cs0, rf2_rst, rf2_busy, 2.4, debug=True, txen=tx_en, rxen=rx_en
+    )
+
+    radio2.send("Hello World")
+    print("Radio2 sent Hello World")
+
+    while True:
+        print("Testing Radio2")
+        print(radio2.receive())
+        time.sleep(1)
+    ### This is Hacky V5a Devel Stuff###
 
     i2c1 = initialize_i2c_bus(
         logger,
