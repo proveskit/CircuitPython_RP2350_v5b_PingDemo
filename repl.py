@@ -28,6 +28,7 @@ from lib.adafruit_mcp230xx.mcp23017 import (
     MCP23017,  ### This is Hacky V5a Devel Stuff###
 )
 from lib.adafruit_tca9548a import TCA9548A  ### This is Hacky V5a Devel Stuff###
+from lib.pysquared.Big_Data import AllFaces  ### This is Hacky V5a Devel Stuff###
 from lib.pysquared.cdh import CommandDataHandler
 from lib.pysquared.config.config import Config
 from lib.pysquared.hardware.busio import _spi_init, initialize_i2c_bus
@@ -230,7 +231,8 @@ def all_faces_on():
 ## Face Sensor Stuff ##
 
 # This is the TCA9548A I2C Multiplexer
-tca = TCA9548A(i2c1)
+tca = TCA9548A(i2c1, address=int(0x77))
 
+all_faces = AllFaces(tca, logger)
 
 ### This is Hacky V5a Devel Stuff###
