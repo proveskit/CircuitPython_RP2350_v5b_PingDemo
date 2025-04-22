@@ -93,16 +93,12 @@ try:
     rx_en.direction = digitalio.Direction.OUTPUT
 
     radio2 = sx1280.SX1280(
-        spi1, spi1_cs0, rf2_rst, rf2_busy, 2.4, debug=True, txen=tx_en, rxen=rx_en
+        spi1, spi1_cs0, rf2_rst, rf2_busy, 2.4, debug=False, txen=tx_en, rxen=rx_en
     )
 
     radio2.send("Hello World")
     print("Radio2 sent Hello World")
 
-    while True:
-        print("Testing Radio2")
-        print(radio2.receive())
-        time.sleep(1)
     ### This is Hacky V5a Devel Stuff###
 
     i2c1 = initialize_i2c_bus(
@@ -178,6 +174,9 @@ try:
 
     def main():
         f.beacon()
+
+        print("Testing Radio2")
+        print(radio2.receive())
 
         f.listen_loiter()
 
