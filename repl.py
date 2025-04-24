@@ -138,7 +138,7 @@ tx_en.direction = digitalio.Direction.OUTPUT
 rx_en.direction = digitalio.Direction.OUTPUT
 
 radio2 = sx1280.SX1280(
-    spi1, spi1_cs0, rf2_rst, rf2_busy, 2.4, debug=True, txen=tx_en, rxen=rx_en
+    spi1, spi1_cs0, rf2_rst, rf2_busy, 2.4, debug=False, txen=tx_en, rxen=rx_en
 )
 
 radio2.send("Hello World")
@@ -197,20 +197,20 @@ GPIO_RESET = initialize_pin(
 mcp = MCP23017(i2c1)
 
 # This sets up all of the GPIO pins on the MCP23017
-FACE4_ENABLE = mcp.get_pin(0)
-FACE0_ENABLE = mcp.get_pin(1)
-FACE1_ENABLE = mcp.get_pin(2)
-FACE2_ENABLE = mcp.get_pin(3)
-FACE3_ENABLE = mcp.get_pin(4)
-ENAB_RF = mcp.get_pin(5)
-VBUS_RESET = mcp.get_pin(6)
-SPI0_CS1 = mcp.get_pin(7)
-ENABLE_HEATER = mcp.get_pin(8)
-PAYLOAD_PWR_ENABLE = mcp.get_pin(9)
-Z_GPIO0 = mcp.get_pin(10)
-Z_GPIO1 = mcp.get_pin(11)
-RF2_IO2 = mcp.get_pin(12)
-RF2_IO1 = mcp.get_pin(13)
+FACE4_ENABLE = mcp.get_pin(8)
+FACE0_ENABLE = mcp.get_pin(9)
+FACE1_ENABLE = mcp.get_pin(10)
+FACE2_ENABLE = mcp.get_pin(11)
+FACE3_ENABLE = mcp.get_pin(12)
+ENAB_RF = mcp.get_pin(13)
+VBUS_RESET = mcp.get_pin(14)
+SPI0_CS1 = mcp.get_pin(15)
+ENABLE_HEATER = mcp.get_pin(0)
+PAYLOAD_PWR_ENABLE = mcp.get_pin(1)
+Z_GPIO0 = mcp.get_pin(2)
+Z_GPIO1 = mcp.get_pin(3)
+RF2_IO2 = mcp.get_pin(4)
+RF2_IO1 = mcp.get_pin(5)
 
 # This defines the direction of the GPIO pins
 FACE4_ENABLE.direction = digitalio.Direction.OUTPUT
@@ -250,6 +250,9 @@ def all_faces_on():
 ## Face Sensor Stuff ##
 
 # This is the TCA9548A I2C Multiplexer
+mux_reset = initialize_pin(logger, board.MUX_RESET, digitalio.Direction.OUTPUT, True)
+all_faces_on()
+
 tca = TCA9548A(i2c1, address=int(0x77))
 
 all_faces = AllFaces(tca, logger)
