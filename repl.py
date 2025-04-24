@@ -27,6 +27,7 @@ import sx1280  ### This is Hacky V5a Devel Stuff###
 from lib.adafruit_mcp230xx.mcp23017 import (
     MCP23017,  ### This is Hacky V5a Devel Stuff###
 )
+from lib.adafruit_mcp9808 import MCP9808  ### This is Hacky V5a Devel Stuff###
 from lib.adafruit_tca9548a import TCA9548A  ### This is Hacky V5a Devel Stuff###
 from lib.pysquared.Big_Data import AllFaces  ### This is Hacky V5a Devel Stuff###
 from lib.pysquared.cdh import CommandDataHandler
@@ -137,7 +138,7 @@ tx_en.direction = digitalio.Direction.OUTPUT
 rx_en.direction = digitalio.Direction.OUTPUT
 
 radio2 = sx1280.SX1280(
-    spi1, spi1_cs0, rf2_rst, rf2_busy, 2.4, debug=False, txen=tx_en, rxen=rx_en
+    spi1, spi1_cs0, rf2_rst, rf2_busy, 2.4, debug=True, txen=tx_en, rxen=rx_en
 )
 
 radio2.send("Hello World")
@@ -162,13 +163,31 @@ def dumb_burn(duration=5) -> None:
     Returns:
         None
     """
-    ENABLE_BURN_A.value = True
-    ENABLE_BURN_B.value = True
+    ENABLE_BURN_A.value = False
+    ENABLE_BURN_B.value = False
     logger.info("Burn Wire Enabled")
     time.sleep(duration)
     logger.info("Burn Wire Disabled")
-    ENABLE_BURN_A.value = False
-    ENABLE_BURN_B.value = False
+    ENABLE_BURN_A.value = True
+    ENABLE_BURN_B.value = True
+
+
+## Initialzing the Heater ##
+def heater_pulse() -> None:
+    """
+    This function is used to turn on the heater.
+    It will turn on the heater for 5 seconds and then turn it off.
+
+    Args:
+        None
+    Returns:
+        None
+    """
+    ENABLE_HEATER.value = False
+    logger.info("Heater Enabled")
+    time.sleep(5)
+    logger.info("Heater Disabled")
+    ENABLE_HEATER.value = True
 
 
 ## Initialize the MCP23017 GPIO Expander and its pins ##
@@ -234,5 +253,8 @@ def all_faces_on():
 tca = TCA9548A(i2c1, address=int(0x77))
 
 all_faces = AllFaces(tca, logger)
+
+## Onboard Temp Sensor ##
+mcp = MCP9808(i2c1, address=30)  # Not working for some reason
 
 ### This is Hacky V5a Devel Stuff###
