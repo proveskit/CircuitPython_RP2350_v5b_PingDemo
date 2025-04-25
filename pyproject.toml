@@ -1,7 +1,7 @@
 [project]
-name = "circuitpy-flight-software"
-version = "2.0.0"
-description = "Flight Software for the PROVES Kit"
+name = "proveskit-rp2350-v5a"
+version = "1.0.0"
+description = "Flight Software for the PROVES Kit RP2350 v5A"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -9,6 +9,7 @@ dependencies = [
     "circuitpython-stubs==9.2.5",
     "coverage==7.6.10",
     "pre-commit==4.0.1",
+    "pyright[nodejs]==1.1.399",
     "pytest==8.3.2",
 ]
 
@@ -16,36 +17,15 @@ dependencies = [
 # Use `\n` line endings for all files
 line-ending = "lf"
 
-[tool.pytest.ini_options]
-pythonpath = "."
-markers = [
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+[tool.pyright]
+include = ["main.py", "boot.py", "repl.py", "safemode.py"]
+exclude = [
+    "**/__pycache__",
+    ".venv",
+    ".git",
+    "artifacts",
+    "lib",
+    "typings",
 ]
-
-[tool.coverage.run]
-branch = true
-relative_files = true
-
-[tool.coverage.report]
-show_missing = true
-skip_covered = false
-include = [
-    "lib/**/*.py",
-    "boot.py",
-    "main.py",
-    "repl.py",
-    "safemode.py",
-    ]
-omit = [
-    "lib/adafruit_*/**",
-    "lib/asyncio_*/**",
-    "lib/rv3028*/**",
-    "lib/neopixel.py",
-    "lib/pysquared/**"
-    ]
-
-[tool.coverage.html]
-directory = ".coverage-reports/html"
-
-[tool.coverage.xml]
-output = ".coverage-reports/coverage.xml"
+stubPath = "./typings"
+reportMissingModuleSource = false

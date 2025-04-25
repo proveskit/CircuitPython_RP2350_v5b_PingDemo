@@ -10,21 +10,14 @@ Published:
 
 import gc
 import time
+import os
 
 import digitalio
 import microcontroller
-
-try:
-    # from board_definitions import proveskit_rp2040_v4 as board
-    raise ImportError
-except ImportError:
-    import board
-
-import os
+import board
 
 import lib.pysquared.functions as functions
 import lib.pysquared.nvm.register as register
-import sx1280  ### This is Hacky V5a Devel Stuff###
 from lib.pysquared.cdh import CommandDataHandler
 from lib.pysquared.config.config import Config
 from lib.pysquared.hardware.busio import _spi_init, initialize_i2c_bus
@@ -39,12 +32,13 @@ from lib.pysquared.rtc.manager.microcontroller import MicrocontrollerManager
 from lib.pysquared.satellite import Satellite
 from lib.pysquared.sleep_helper import SleepHelper
 from lib.pysquared.watchdog import Watchdog
+from lib.sx1280.sx1280 import SX1280
 from version import __version__
 
 rtc = MicrocontrollerManager()
 
 logger: Logger = Logger(
-    error_counter=Counter(index=register.ERRORCNT, datastore=microcontroller.nvm),
+    error_counter=Counter(index=register.ERRORCNT),
     colorized=False,
 )
 
@@ -92,7 +86,7 @@ try:
     tx_en.direction = digitalio.Direction.OUTPUT
     rx_en.direction = digitalio.Direction.OUTPUT
 
-    radio2 = sx1280.SX1280(
+    radio2 = SX1280(
         spi1, spi1_cs0, rf2_rst, rf2_busy, 2.4, debug=False, txen=tx_en, rxen=rx_en
     )
 
@@ -115,7 +109,7 @@ try:
     radio = RFM9xManager(
         logger,
         config.radio,
-        Flag(index=register.FLAG, bit_index=7, datastore=microcontroller.nvm),
+        Flag(index=register.FLAG, bit_index=7),
         spi0,
         initialize_pin(logger, board.SPI0_CS0, digitalio.Direction.OUTPUT, True),
         initialize_pin(logger, board.RF1_RST, digitalio.Direction.OUTPUT, True),
@@ -184,9 +178,7 @@ try:
 
         f.listen_loiter()
 
-        f.all_face_data()
         watchdog.pet()
-        f.send_face()
 
         f.listen_loiter()
 
