@@ -171,7 +171,7 @@ def dumb_burn(duration=5) -> None:
     ENABLE_BURN_B.value = True
 
 
-## Initialzing the Heater ##
+## Initializing the Heater ##
 def heater_pulse() -> None:
     """
     This function is used to turn on the heater.
