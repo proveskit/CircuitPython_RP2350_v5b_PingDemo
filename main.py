@@ -9,15 +9,16 @@ Published:
 """
 
 import gc
-import time
 import os
+import time
 
+import board
 import digitalio
 import microcontroller
-import board
 
 import lib.pysquared.functions as functions
 import lib.pysquared.nvm.register as register
+from lib.proves_sx1280.sx1280 import SX1280
 from lib.pysquared.cdh import CommandDataHandler
 from lib.pysquared.config.config import Config
 from lib.pysquared.hardware.busio import _spi_init, initialize_i2c_bus
@@ -32,7 +33,6 @@ from lib.pysquared.rtc.manager.microcontroller import MicrocontrollerManager
 from lib.pysquared.satellite import Satellite
 from lib.pysquared.sleep_helper import SleepHelper
 from lib.pysquared.watchdog import Watchdog
-from lib.sx1280.sx1280 import SX1280
 from version import __version__
 
 rtc = MicrocontrollerManager()

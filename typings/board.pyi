@@ -55,7 +55,6 @@ FIRE_DEPLOY1_B: microcontroller.Pin  # GPIO29
 # SPI), MP_ROM_PTR(&board_spi_obj) },
 # UART), MP_ROM_PTR(&board_uart_obj) },
 
-
 # Members:
 def I2C() -> busio.I2C:
     """Returns the `busio.I2C` object for the board's designated I2C bus(es).

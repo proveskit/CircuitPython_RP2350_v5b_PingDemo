@@ -11,7 +11,6 @@ Published:
 import time
 
 import digitalio
-import microcontroller
 
 try:
     # from board_definitions import proveskit_rp2040_v4 as board
@@ -23,12 +22,12 @@ import os
 
 import lib.pysquared.functions as functions
 import lib.pysquared.nvm.register as register
-import sx1280  ### This is Hacky V5a Devel Stuff###
 from lib.adafruit_mcp230xx.mcp23017 import (
     MCP23017,  ### This is Hacky V5a Devel Stuff###
 )
 from lib.adafruit_mcp9808 import MCP9808  ### This is Hacky V5a Devel Stuff###
 from lib.adafruit_tca9548a import TCA9548A  ### This is Hacky V5a Devel Stuff###
+from lib.proves_sx1280.sx1280 import SX1280
 from lib.pysquared.Big_Data import AllFaces  ### This is Hacky V5a Devel Stuff###
 from lib.pysquared.cdh import CommandDataHandler
 from lib.pysquared.config.config import Config
@@ -49,7 +48,7 @@ from version import __version__
 rtc = MicrocontrollerManager()
 
 logger: Logger = Logger(
-    error_counter=Counter(index=register.ERRORCNT, datastore=microcontroller.nvm),
+    error_counter=Counter(index=register.ERRORCNT),
     colorized=False,
 )
 
@@ -101,7 +100,7 @@ sleep_helper = SleepHelper(c, logger, watchdog)
 radio = RFM9xManager(
     logger,
     config.radio,
-    Flag(index=register.FLAG, bit_index=7, datastore=microcontroller.nvm),
+    Flag(index=register.FLAG, bit_index=7),
     spi0,
     initialize_pin(logger, board.SPI0_CS0, digitalio.Direction.OUTPUT, True),
     initialize_pin(logger, board.RF1_RST, digitalio.Direction.OUTPUT, True),
@@ -137,7 +136,7 @@ rx_en = digitalio.DigitalInOut(board.RF2_RX_EN)
 tx_en.direction = digitalio.Direction.OUTPUT
 rx_en.direction = digitalio.Direction.OUTPUT
 
-radio2 = sx1280.SX1280(
+radio2 = SX1280(
     spi1, spi1_cs0, rf2_rst, rf2_busy, 2.4, debug=False, txen=tx_en, rxen=rx_en
 )
 
