@@ -1,4 +1,4 @@
-PYSQUARED_VERSION ?= v2.0.0-alpha-25w17
+PYSQUARED_VERSION ?= sx1280-manager
 PYSQUARED ?= git+https://github.com/proveskit/pysquared@$(PYSQUARED_VERSION)
 
 .PHONY: all

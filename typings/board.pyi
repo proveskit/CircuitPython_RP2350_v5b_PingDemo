@@ -9,7 +9,7 @@ Board stub for PROVES Kit v5a
  - Included modules: _asyncio, _bleio, _pixelmap, adafruit_bus_device, adafruit_pixelbuf, aesio, alarm, analogbufio, analogio, array, atexit, audiobusio, audiocore, audiomixer, audiomp3, audiopwmio, binascii, bitbangio, bitmapfilter, bitmaptools, bitops, board, builtins, builtins.pow3, busdisplay, busio, busio.SPI, busio.UART, codeop, collections, countio, digitalio, displayio, epaperdisplay, errno, floppyio, fontio, fourwire, framebufferio, getpass, gifio, hashlib, i2cdisplaybus, i2ctarget, imagecapture, io, jpegio, json, keypad, keypad.KeyMatrix, keypad.Keys, keypad.ShiftRegisterKeys, keypad_demux, keypad_demux.DemuxKeyMatrix, locale, math, memorymap, microcontroller, msgpack, neopixel_write, nvm, onewireio, os, os.getenv, paralleldisplaybus, pulseio, pwmio, qrio, rainbowio, random, re, rgbmatrix, rotaryio, rp2pio, rtc, sdcardio, select, sharpdisplay, storage, struct, supervisor, synthio, sys, terminalio, tilepalettemapper, time, touchio, traceback, ulab, usb, usb_cdc, usb_hid, usb_host, usb_midi, usb_video, vectorio, warnings, watchdog, zlib
  - Frozen libraries:
 ---
-proveskit: Borrowed from circuitpython-stubs https://pypi.org/project/circuitpython-stubs/#files board definitions
+proveskit: This typings file was assembled by hand and is temporary until we can integrate the 5a board into upstream CircuitPython
 """
 
 # Imports
@@ -50,11 +50,6 @@ MUX_RESET: microcontroller.Pin  # GPIO26
 RTC_INT: microcontroller.Pin  # GPIO27
 FIRE_DEPLOY1_A: microcontroller.Pin  # GPIO28
 FIRE_DEPLOY1_B: microcontroller.Pin  # GPIO29
-# I2C), MP_ROM_PTR(&board_i2c_obj) },
-# STEMMA_I2C), MP_ROM_PTR(&board_i2c_obj) },
-# SPI), MP_ROM_PTR(&board_spi_obj) },
-# UART), MP_ROM_PTR(&board_uart_obj) },
-
 
 # Members:
 def I2C() -> busio.I2C:

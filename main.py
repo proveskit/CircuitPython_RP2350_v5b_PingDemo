@@ -32,7 +32,7 @@ from lib.pysquared.rtc.manager.microcontroller import MicrocontrollerManager
 from lib.pysquared.satellite import Satellite
 from lib.pysquared.sleep_helper import SleepHelper
 from lib.pysquared.watchdog import Watchdog
-from lib.sx1280.sx1280 import SX1280
+from lib.pysquared.hardware.radio.manager.sx1280 import SX1280Manager
 from version import __version__
 
 rtc = MicrocontrollerManager()
@@ -76,24 +76,20 @@ try:
         board.SPI1_MISO,
     )
 
-    ### This is Hacky V5a Devel Stuff###
-    spi1_cs0 = digitalio.DigitalInOut(board.SPI1_CS0)
-    rf2_rst = digitalio.DigitalInOut(board.RF2_RST)
-    rf2_busy = digitalio.DigitalInOut(board.RF2_IO0)
+    use_fsk_flag = Flag(index=register.FLAG, bit_index=7)
 
-    tx_en = digitalio.DigitalInOut(board.RF2_TX_EN)
-    rx_en = digitalio.DigitalInOut(board.RF2_RX_EN)
-    tx_en.direction = digitalio.Direction.OUTPUT
-    rx_en.direction = digitalio.Direction.OUTPUT
-
-    radio2 = SX1280(
-        spi1, spi1_cs0, rf2_rst, rf2_busy, 2.4, debug=False, txen=tx_en, rxen=rx_en
+    radio = SX1280Manager(
+        logger,
+        config.radio,
+        use_fsk_flag,
+        spi1,
+        initialize_pin(logger, board.SPI1_CS0, digitalio.Direction.OUTPUT, True),
+        initialize_pin(logger, board.RF2_RST, digitalio.Direction.OUTPUT, True),
+        initialize_pin(logger, board.RF2_IO0, digitalio.Direction.OUTPUT, True),
+        2.4,
+        initialize_pin(logger, board.RF2_TX_EN, digitalio.Direction.OUTPUT, True),
+        initialize_pin(logger, board.RF2_RX_EN, digitalio.Direction.OUTPUT, True),
     )
-
-    radio2.send("Hello World")
-    print("Radio2 sent Hello World")
-
-    ### This is Hacky V5a Devel Stuff###
 
     i2c1 = initialize_i2c_bus(
         logger,
@@ -106,14 +102,14 @@ try:
 
     sleep_helper = SleepHelper(c, logger, watchdog)
 
-    radio = RFM9xManager(
-        logger,
-        config.radio,
-        Flag(index=register.FLAG, bit_index=7),
-        spi0,
-        initialize_pin(logger, board.SPI0_CS0, digitalio.Direction.OUTPUT, True),
-        initialize_pin(logger, board.RF1_RST, digitalio.Direction.OUTPUT, True),
-    )
+    # radio = RFM9xManager(
+    #     logger,
+    #     config.radio,
+    #     Flag(index=register.FLAG, bit_index=7),
+    #     spi0,
+    #     initialize_pin(logger, board.SPI0_CS0, digitalio.Direction.OUTPUT, True),
+    #     initialize_pin(logger, board.RF1_RST, digitalio.Direction.OUTPUT, True),
+    # )
 
     magnetometer = LIS2MDLManager(logger, i2c1)
 
@@ -168,9 +164,6 @@ try:
 
     def main():
         f.beacon()
-
-        print("Testing Radio2")
-        print(radio2.receive())
 
         f.listen_loiter()
 
