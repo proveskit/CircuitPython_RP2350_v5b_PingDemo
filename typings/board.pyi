@@ -29,8 +29,8 @@ SCL0: microcontroller.Pin  # GPIO5
 RF1_RST: microcontroller.Pin  # GPIO6
 SPI1_CS0: microcontroller.Pin  # GPIO7
 SPI0_MISO: microcontroller.Pin  # GPIO8
-SPI0_SCK: microcontroller.Pin  # GPIO9
-SPI0_MOSI: microcontroller.Pin  # GPIO10
+SPI0_CS0: microcontroller.Pin  # GPIO9
+SPI0_SCK: microcontroller.Pin  # GPIO10
 SPI0_MOSI: microcontroller.Pin  # GPIO11
 RF1_IO4: microcontroller.Pin  # GPIO12
 RF1_IO0: microcontroller.Pin  # GPIO13

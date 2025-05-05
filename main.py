@@ -9,15 +9,16 @@ Published:
 """
 
 import gc
-import time
 import os
+import time
 
+import board
 import digitalio
 import microcontroller
-import board
 
 import lib.pysquared.functions as functions
 import lib.pysquared.nvm.register as register
+from lib.proves_sx1280.sx1280 import SX1280
 from lib.pysquared.cdh import CommandDataHandler
 from lib.pysquared.config.config import Config
 from lib.pysquared.hardware.busio import _spi_init, initialize_i2c_bus
