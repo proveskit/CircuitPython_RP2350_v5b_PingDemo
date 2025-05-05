@@ -27,8 +27,7 @@ from lib.adafruit_mcp230xx.mcp23017 import (
 )
 from lib.adafruit_mcp9808 import MCP9808  ### This is Hacky V5a Devel Stuff###
 from lib.adafruit_tca9548a import TCA9548A  ### This is Hacky V5a Devel Stuff###
-from lib.proves_sx1280.sx1280 import SX1280
-from lib.pysquared.Big_Data import AllFaces  ### This is Hacky V5a Devel Stuff###
+# from lib.pysquared.Big_Data import AllFaces  ### This is Hacky V5a Devel Stuff###
 from lib.pysquared.cdh import CommandDataHandler
 from lib.pysquared.config.config import Config
 from lib.pysquared.hardware.busio import _spi_init, initialize_i2c_bus
@@ -36,6 +35,7 @@ from lib.pysquared.hardware.digitalio import initialize_pin
 from lib.pysquared.hardware.imu.manager.lsm6dsox import LSM6DSOXManager
 from lib.pysquared.hardware.magnetometer.manager.lis2mdl import LIS2MDLManager
 from lib.pysquared.hardware.radio.manager.rfm9x import RFM9xManager
+from lib.pysquared.hardware.radio.manager.sx1280 import SX1280Manager
 from lib.pysquared.logger import Logger
 from lib.pysquared.nvm.counter import Counter
 from lib.pysquared.nvm.flag import Flag
@@ -136,8 +136,19 @@ rx_en = digitalio.DigitalInOut(board.RF2_RX_EN)
 tx_en.direction = digitalio.Direction.OUTPUT
 rx_en.direction = digitalio.Direction.OUTPUT
 
-radio2 = SX1280(
-    spi1, spi1_cs0, rf2_rst, rf2_busy, 2.4, debug=False, txen=tx_en, rxen=rx_en
+use_fsk_flag = Flag(index=register.FLAG, bit_index=7)
+
+radio2 = SX1280Manager(
+    logger,
+    config.radio,
+    use_fsk_flag,
+    spi1,
+    initialize_pin(logger, board.SPI1_CS0, digitalio.Direction.OUTPUT, True),
+    initialize_pin(logger, board.RF2_RST, digitalio.Direction.OUTPUT, True),
+    initialize_pin(logger, board.RF2_IO0, digitalio.Direction.OUTPUT, True),
+    2.4,
+    initialize_pin(logger, board.RF2_TX_EN, digitalio.Direction.OUTPUT, True),
+    initialize_pin(logger, board.RF2_RX_EN, digitalio.Direction.OUTPUT, True),
 )
 
 radio2.send("Hello World")
@@ -254,7 +265,7 @@ all_faces_on()
 
 tca = TCA9548A(i2c1, address=int(0x77))
 
-all_faces = AllFaces(tca, logger)
+# all_faces = AllFaces(tca, logger)
 
 ## Onboard Temp Sensor ##
 mcp = MCP9808(i2c1, address=30)  # Not working for some reason
