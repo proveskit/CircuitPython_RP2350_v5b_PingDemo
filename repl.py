@@ -127,14 +127,6 @@ f = functions.functions(
 ### This is Hacky V5a Devel Stuff###
 
 ## Initialize the Second Radio ##
-spi1_cs0 = digitalio.DigitalInOut(board.SPI1_CS0)
-rf2_rst = digitalio.DigitalInOut(board.RF2_RST)
-rf2_busy = digitalio.DigitalInOut(board.RF2_IO0)
-
-tx_en = digitalio.DigitalInOut(board.RF2_TX_EN)
-rx_en = digitalio.DigitalInOut(board.RF2_RX_EN)
-tx_en.direction = digitalio.Direction.OUTPUT
-rx_en.direction = digitalio.Direction.OUTPUT
 
 use_fsk_flag = Flag(index=register.FLAG, bit_index=7)
 
