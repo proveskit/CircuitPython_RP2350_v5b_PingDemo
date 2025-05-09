@@ -51,6 +51,11 @@ else
 	$(call rsync_to_dest,artifacts/proves,$(BOARD_MOUNT_POINT))
 endif
 
+# install-firmware
+.PHONY: install-firmware
+install-firmware: uv ## Install the board firmware onto a connected PROVES Kit
+	@$(UVX) --from git+https://github.com/proveskit/install-firmware@1.0.0 install-firmware v5a
+
 .PHONY: clean
 clean: ## Remove all gitignored files such as downloaded libraries and artifacts
 	git clean -dfX
