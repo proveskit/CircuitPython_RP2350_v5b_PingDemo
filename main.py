@@ -3,24 +3,18 @@
 # Created By: Michael Pham
 
 """
-Built for the PySquared FC Board
-Version: 2.0.0
-Published: Nov 19, 2024
+Built for the PySquared V5a FC Board
+Version: X.X.X
+Published:
 """
 
 import gc
+import os
 import time
 
+import board
 import digitalio
 import microcontroller
-
-try:
-    # from board_definitions import proveskit_rp2040_v4 as board
-    raise ImportError
-except ImportError:
-    import board
-
-import os
 
 import lib.pysquared.functions as functions
 import lib.pysquared.nvm.register as register
@@ -30,7 +24,7 @@ from lib.pysquared.hardware.busio import _spi_init, initialize_i2c_bus
 from lib.pysquared.hardware.digitalio import initialize_pin
 from lib.pysquared.hardware.imu.manager.lsm6dsox import LSM6DSOXManager
 from lib.pysquared.hardware.magnetometer.manager.lis2mdl import LIS2MDLManager
-from lib.pysquared.hardware.radio.manager.sx126x import SX126xManager
+from lib.pysquared.hardware.radio.manager.sx1280 import SX1280Manager
 from lib.pysquared.logger import Logger
 from lib.pysquared.nvm.counter import Counter
 from lib.pysquared.nvm.flag import Flag
@@ -43,7 +37,7 @@ from version import __version__
 rtc = MicrocontrollerManager()
 
 logger: Logger = Logger(
-    error_counter=Counter(index=register.ERRORCNT, datastore=microcontroller.nvm),
+    error_counter=Counter(index=register.ERRORCNT),
     colorized=False,
 )
 
@@ -69,36 +63,56 @@ try:
     # TODO(nateinaction): fix spi init
     spi0 = _spi_init(
         logger,
+        board.SPI0_SCK,
+        board.SPI0_MOSI,
+        board.SPI0_MISO,
+    )
+
+    spi1 = _spi_init(
+        logger,
         board.SPI1_SCK,
         board.SPI1_MOSI,
         board.SPI1_MISO,
     )
 
-    radio = SX126xManager(
+    use_fsk_flag = Flag(index=register.FLAG, bit_index=7)
+
+    radio = SX1280Manager(
         logger,
         config.radio,
-        Flag(index=register.FLAG, bit_index=7, datastore=microcontroller.nvm),
-        spi0,
-        initialize_pin(logger, board.SPI0_CS0, digitalio.Direction.OUTPUT, True),
-        board.RF2_IO0,
-        initialize_pin(logger, board.RF1_RST, digitalio.Direction.OUTPUT, True),
-        board.RF2_IO4,
+        use_fsk_flag,
+        spi1,
+        initialize_pin(logger, board.SPI1_CS0, digitalio.Direction.OUTPUT, True),
+        initialize_pin(logger, board.RF2_RST, digitalio.Direction.OUTPUT, True),
+        initialize_pin(logger, board.RF2_IO0, digitalio.Direction.OUTPUT, True),
+        2.4,
+        initialize_pin(logger, board.RF2_TX_EN, digitalio.Direction.OUTPUT, True),
+        initialize_pin(logger, board.RF2_RX_EN, digitalio.Direction.OUTPUT, True),
     )
 
     i2c1 = initialize_i2c_bus(
         logger,
-        board.I2C1_SCL,
-        board.I2C1_SDA,
+        board.SCL1,
+        board.SDA1,
         100000,
     )
-
-    magnetometer = LIS2MDLManager(logger, i2c1)
-
-    imu = LSM6DSOXManager(logger, i2c1, 0x6B)
 
     c = Satellite(logger, config)
 
     sleep_helper = SleepHelper(c, logger, watchdog)
+
+    # radio = RFM9xManager(
+    #     logger,
+    #     config.radio,
+    #     Flag(index=register.FLAG, bit_index=7),
+    #     spi0,
+    #     initialize_pin(logger, board.SPI0_CS0, digitalio.Direction.OUTPUT, True),
+    #     initialize_pin(logger, board.RF1_RST, digitalio.Direction.OUTPUT, True),
+    # )
+
+    magnetometer = LIS2MDLManager(logger, i2c1)
+
+    imu = LSM6DSOXManager(logger, i2c1, 0x6B)
 
     cdh = CommandDataHandler(config, logger, radio)
 
@@ -156,9 +170,7 @@ try:
 
         f.listen_loiter()
 
-        f.all_face_data()
         watchdog.pet()
-        f.send_face()
 
         f.listen_loiter()
 

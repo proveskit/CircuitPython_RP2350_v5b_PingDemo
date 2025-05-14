@@ -1,4 +1,4 @@
-PYSQUARED_VERSION ?= v2.0.0-alpha-25w14-3
+PYSQUARED_VERSION ?= sx1280-manager
 PYSQUARED ?= git+https://github.com/proveskit/pysquared@$(PYSQUARED_VERSION)
 
 .PHONY: all
@@ -50,6 +50,11 @@ else
 	@rm $(BOARD_MOUNT_POINT)/code.py > /dev/null 2>&1 || true
 	$(call rsync_to_dest,artifacts/proves,$(BOARD_MOUNT_POINT))
 endif
+
+# install-firmware
+.PHONY: install-firmware
+install-firmware: uv ## Install the board firmware onto a connected PROVES Kit
+	@$(UVX) --from git+https://github.com/proveskit/install-firmware@1.0.1 install-firmware v5a
 
 .PHONY: clean
 clean: ## Remove all gitignored files such as downloaded libraries and artifacts
