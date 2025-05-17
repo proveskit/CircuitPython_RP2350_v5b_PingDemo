@@ -96,7 +96,7 @@ i2c1 = initialize_i2c_bus(
 
 c = Satellite(logger, config)
 
-sleep_helper = SleepHelper(c, logger, watchdog)
+sleep_helper = SleepHelper(c, logger, watchdog, config)
 
 radio = RFM9xManager(
     logger,
