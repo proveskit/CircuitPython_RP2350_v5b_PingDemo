@@ -99,7 +99,7 @@ try:
 
     c = Satellite(logger, config)
 
-    sleep_helper = SleepHelper(c, logger, watchdog)
+    sleep_helper = SleepHelper(c, logger, watchdog, config)
 
     # radio = RFM9xManager(
     #     logger,
