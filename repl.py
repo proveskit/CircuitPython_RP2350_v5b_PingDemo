@@ -72,6 +72,8 @@ watchdog.pet()
 logger.debug("Initializing Config")
 config: Config = Config("config.json")
 
+
+## Init Buses ##
 # TODO(nateinaction): fix spi init
 spi0 = _spi_init(
     logger,
@@ -101,14 +103,30 @@ i2c1 = initialize_i2c_bus(
     100000,
 )
 
+## Init Helper Classes ##
+
 c = Satellite(logger, config)
 
 sleep_helper = SleepHelper(c, logger, watchdog, config)
 
+## Init Misc Pins ##
+burnwire_heater_enable = initialize_pin(
+    logger, board.FIRE_DEPLOY1_A, digitalio.Direction.OUTPUT, False
+)
+burnwire1_fire = initialize_pin(
+    logger, board.FIRE_DEPLOY1_B, digitalio.Direction.OUTPUT, False
+)
+
+mux_reset = initialize_pin(logger, board.MUX_RESET, digitalio.Direction.OUTPUT, True)
+
+## Init Hardware ##
+# TODO: Replace this with new radio_config rather than the flag
+use_fsk_flag = Flag(index=register.FLAG, bit_index=7)
+
 radio = RFM9xManager(
     logger,
     config.radio,
-    Flag(index=register.FLAG, bit_index=7),
+    use_fsk_flag,
     spi0,
     initialize_pin(logger, board.SPI0_CS0, digitalio.Direction.OUTPUT, True),
     initialize_pin(logger, board.RF1_RST, digitalio.Direction.OUTPUT, True),
@@ -133,10 +151,7 @@ f = functions.functions(
 )
 
 ### This is Hacky V5a Devel Stuff###
-
 ## Initialize the Second Radio ##
-
-use_fsk_flag = Flag(index=register.FLAG, bit_index=7)
 
 radio2 = SX1280Manager(
     logger,
@@ -155,31 +170,7 @@ radio2.send("Hello World")
 print("Radio2 sent Hello World")
 
 ## Initializing the Burn Wire ##
-ENABLE_BURN_A = initialize_pin(
-    logger, board.FIRE_DEPLOY1_A, digitalio.Direction.OUTPUT, True
-)
-ENABLE_BURN_B = initialize_pin(
-    logger, board.FIRE_DEPLOY1_B, digitalio.Direction.OUTPUT, True
-)
-
-
-def dumb_burn(duration=5) -> None:
-    """
-    This function is used to test the burn wire.
-    It will turn on the burn wire for 5 seconds and then turn it off.
-
-    Args:
-        duration (int): The duration to burn for in seconds. Default is 5 seconds.
-    Returns:
-        None
-    """
-    ENABLE_BURN_A.value = False
-    ENABLE_BURN_B.value = False
-    logger.info("Burn Wire Enabled")
-    time.sleep(duration)
-    logger.info("Burn Wire Disabled")
-    ENABLE_BURN_A.value = True
-    ENABLE_BURN_B.value = True
+# TODO: Replace this with the new Burnwire Manager
 
 
 ## Initializing the Heater ##
@@ -260,7 +251,6 @@ def all_faces_on():
 ## Face Sensor Stuff ##
 
 # This is the TCA9548A I2C Multiplexer
-mux_reset = initialize_pin(logger, board.MUX_RESET, digitalio.Direction.OUTPUT, True)
 all_faces_on()
 
 tca = TCA9548A(i2c1, address=int(0x77))
