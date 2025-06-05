@@ -11,6 +11,8 @@ Published:
 import time
 
 import digitalio
+import sdcardio
+import storage
 
 try:
     # from board_definitions import proveskit_rp2040_v4 as board
@@ -149,6 +151,15 @@ f = functions.functions(
     watchdog,
     cdh,
 )
+try:
+    sd = sdcardio.SDCard(
+        spi1, initialize_pin(logger, board.SPI1_CS1, digitalio.Direction.OUTPUT, True)
+    )
+    vfs = storage.VfsFat(sd)
+    storage.mount(vfs, "/sd")
+except Exception as e:
+    logger.error("Error Initializing SD Card", e)
+    sd = None
 
 ### This is Hacky V5a Devel Stuff###
 ## Initialize the Second Radio ##
