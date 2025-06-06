@@ -27,6 +27,8 @@ except Exception:
 
 import os
 
+from pysquared.protos.power_monitor import PowerMonitorProto
+
 import lib.pysquared.functions as functions
 import lib.pysquared.nvm.register as register
 from lib.adafruit_drv2605 import DRV2605  ### This is Hacky V5a Devel Stuff###
@@ -44,6 +46,7 @@ from lib.pysquared.hardware.busio import _spi_init, initialize_i2c_bus
 from lib.pysquared.hardware.digitalio import initialize_pin
 from lib.pysquared.hardware.imu.manager.lsm6dsox import LSM6DSOXManager
 from lib.pysquared.hardware.magnetometer.manager.lis2mdl import LIS2MDLManager
+from lib.pysquared.hardware.power_monitor.manager.ina219 import INA219Manager
 from lib.pysquared.hardware.radio.manager.rfm9x import RFM9xManager
 from lib.pysquared.hardware.radio.manager.sx1280 import SX1280Manager
 from lib.pysquared.logger import Logger
@@ -179,6 +182,14 @@ radio2 = SX1280Manager(
 
 radio2.send("Hello World")
 print("Radio2 sent Hello World")
+
+try:
+    battery_power_monitor: PowerMonitorProto = INA219Manager(logger, i2c1, 0x40)
+    solar_power_monitor: PowerMonitorProto = INA219Manager(logger, i2c1, 0x41)
+except Exception as e:
+    logger.error("Error Initializing Power Monitors", e)
+    battery_power_monitor = None
+    solar_power_monitor = None
 
 ## Initializing the Burn Wire ##
 # TODO: Replace this with the new Burnwire Manager
