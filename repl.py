@@ -62,7 +62,7 @@ rtc = MicrocontrollerManager()
 
 logger: Logger = Logger(
     error_counter=Counter(index=register.ERRORCNT),
-    colorized=False,
+    colorized=True,
 )
 
 logger.info(
@@ -127,15 +127,20 @@ mux_reset = initialize_pin(logger, board.MUX_RESET, digitalio.Direction.OUTPUT, 
 ## Init Hardware ##
 # TODO: Replace this with new radio_config rather than the flag
 use_fsk_flag = Flag(index=register.FLAG, bit_index=7)
+use_fsk_flag.toggle(False)
 
-radio = RFM9xManager(
-    logger,
-    config.radio,
-    use_fsk_flag,
-    spi0,
-    initialize_pin(logger, board.SPI0_CS0, digitalio.Direction.OUTPUT, True),
-    initialize_pin(logger, board.RF1_RST, digitalio.Direction.OUTPUT, True),
-)
+try:
+    radio = RFM9xManager(
+        logger,
+        config.radio,
+        use_fsk_flag,
+        spi0,
+        initialize_pin(logger, board.SPI0_CS0, digitalio.Direction.OUTPUT, True),
+        initialize_pin(logger, board.RF1_RST, digitalio.Direction.OUTPUT, True),
+    )
+except Exception as e:
+    logger.error("Error Initializing Radio", e)
+    radio = None
 
 magnetometer = LIS2MDLManager(logger, i2c1)
 
@@ -155,11 +160,10 @@ f = functions.functions(
     cdh,
 )
 try:
-    sd = sdcardio.SDCard(
-        spi1, initialize_pin(logger, board.SPI1_CS1, digitalio.Direction.OUTPUT, True)
-    )
+    sd = sdcardio.SDCard(spi1, board.SPI1_CS1)
     vfs = storage.VfsFat(sd)
     storage.mount(vfs, "/sd")
+    logger.info("SD Card Mounted Successfully")
 except Exception as e:
     logger.error("Error Initializing SD Card", e)
     sd = None
@@ -185,7 +189,7 @@ print("Radio2 sent Hello World")
 
 try:
     battery_power_monitor: PowerMonitorProto = INA219Manager(logger, i2c1, 0x40)
-    solar_power_monitor: PowerMonitorProto = INA219Manager(logger, i2c1, 0x41)
+    solar_power_monitor: PowerMonitorProto = INA219Manager(logger, i2c1, 0x44)
 except Exception as e:
     logger.error("Error Initializing Power Monitors", e)
     battery_power_monitor = None
