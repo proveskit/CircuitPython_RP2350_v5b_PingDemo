@@ -54,7 +54,7 @@ endif
 # install-firmware
 .PHONY: install-firmware
 install-firmware: uv ## Install the board firmware onto a connected PROVES Kit
-	@$(UVX) --from git+https://github.com/proveskit/install-firmware@1.0.1 install-firmware v5a
+	@$(UVX) --from git+https://github.com/proveskit/install-firmware@1.0.2 install-firmware v5b
 
 .PHONY: clean
 clean: ## Remove all gitignored files such as downloaded libraries and artifacts
