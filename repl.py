@@ -42,6 +42,7 @@ from lib.adafruit_veml7700 import VEML7700  ### This is Hacky V5a Devel Stuff###
 # from lib.pysquared.Big_Data import AllFaces  ### This is Hacky V5a Devel Stuff###
 from lib.pysquared.cdh import CommandDataHandler
 from lib.pysquared.config.config import Config
+from lib.pysquared.hardware.burnwire.manager.burnwire import BurnwireManager
 from lib.pysquared.hardware.busio import _spi_init, initialize_i2c_bus
 from lib.pysquared.hardware.digitalio import initialize_pin
 from lib.pysquared.hardware.imu.manager.lsm6dsox import LSM6DSOXManager
@@ -196,7 +197,9 @@ except Exception as e:
     solar_power_monitor = None
 
 ## Initializing the Burn Wire ##
-# TODO: Replace this with the new Burnwire Manager
+antenna_deployment = BurnwireManager(
+    logger, burnwire_heater_enable, burnwire1_fire, enable_logic=True
+)
 
 
 ## Initializing the Heater ##
