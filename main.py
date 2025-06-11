@@ -47,7 +47,7 @@ logger.info(
     software_version=__version__,
 )
 
-loiter_time: int = 5
+loiter_time: int = 15
 
 try:
     for i in range(loiter_time):
