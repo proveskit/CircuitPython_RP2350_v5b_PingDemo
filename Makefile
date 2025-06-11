@@ -1,4 +1,4 @@
-PYSQUARED_VERSION ?= burnwire-manager
+PYSQUARED_VERSION ?= v2.0.0-alpha-25w24
 PYSQUARED ?= git+https://github.com/proveskit/pysquared@$(PYSQUARED_VERSION)
 
 .PHONY: all
