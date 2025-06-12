@@ -80,7 +80,6 @@ try:
     radio = SX1280Manager(
         logger,
         config.radio,
-        use_fsk_flag,
         spi1,
         initialize_pin(logger, board.SPI1_CS0, digitalio.Direction.OUTPUT, True),
         initialize_pin(logger, board.RF2_RST, digitalio.Direction.OUTPUT, True),
