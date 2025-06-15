@@ -100,14 +100,16 @@ try:
 
     sleep_helper = SleepHelper(c, logger, watchdog, config)
 
-    # radio = RFM9xManager(
-    #     logger,
-    #     config.radio,
-    #     Flag(index=register.FLAG, bit_index=7),
-    #     spi0,
-    #     initialize_pin(logger, board.SPI0_CS0, digitalio.Direction.OUTPUT, True),
-    #     initialize_pin(logger, board.RF1_RST, digitalio.Direction.OUTPUT, True),
-    # )
+    try:
+        radio = RFM9xManager(
+            logger,
+            config.radio,
+            spi0,
+            initialize_pin(logger, board.SPI0_CS0, digitalio.Direction.OUTPUT, True),
+            initialize_pin(logger, board.RF1_RST, digitalio.Direction.OUTPUT, True),
+        )
+    except Exception as e:
+        logger.error("Failed to initialize RFM9x radio", e)
 
     magnetometer = LIS2MDLManager(logger, i2c1)
 
