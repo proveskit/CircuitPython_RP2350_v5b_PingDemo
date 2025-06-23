@@ -78,6 +78,7 @@ watchdog.pet()
 logger.debug("Initializing Config")
 config: Config = Config("config.json")
 
+mux_reset = initialize_pin(logger, board.MUX_RESET, digitalio.Direction.OUTPUT, True)
 
 ## Init Buses ##
 # TODO(nateinaction): fix spi init
@@ -122,8 +123,6 @@ burnwire_heater_enable = initialize_pin(
 burnwire1_fire = initialize_pin(
     logger, board.FIRE_DEPLOY1_B, digitalio.Direction.OUTPUT, False
 )
-
-mux_reset = initialize_pin(logger, board.MUX_RESET, digitalio.Direction.OUTPUT, True)
 
 ## Init Hardware ##
 # TODO: Replace this with new radio_config rather than the flag
@@ -174,7 +173,6 @@ except Exception as e:
 radio2 = SX1280Manager(
     logger,
     config.radio,
-    use_fsk_flag,
     spi1,
     initialize_pin(logger, board.SPI1_CS0, digitalio.Direction.OUTPUT, True),
     initialize_pin(logger, board.RF2_RST, digitalio.Direction.OUTPUT, True),
@@ -258,17 +256,6 @@ def all_faces_off():
     """
     This function turns off all of the faces. Note the load switches are disabled high.
     """
-    FACE0_ENABLE.value = True
-    FACE1_ENABLE.value = True
-    FACE2_ENABLE.value = True
-    FACE3_ENABLE.value = True
-    FACE4_ENABLE.value = True
-
-
-def all_faces_on():
-    """
-    This function turns on all of the faces. Note the load switches are enabled low.
-    """
     FACE0_ENABLE.value = False
     FACE1_ENABLE.value = False
     FACE2_ENABLE.value = False
@@ -276,10 +263,24 @@ def all_faces_on():
     FACE4_ENABLE.value = False
 
 
+def all_faces_on():
+    """
+    This function turns on all of the faces. Note the load switches are enabled low.
+    """
+    FACE0_ENABLE.value = True
+    FACE1_ENABLE.value = True
+    FACE2_ENABLE.value = True
+    FACE3_ENABLE.value = True
+    FACE4_ENABLE.value = True
+
+
 ## Face Sensor Stuff ##
 
 # This is the TCA9548A I2C Multiplexer
 all_faces_on()
+
+time.sleep(0.1)  # Wait for the faces to power on
+# mux_reset.value = False  # Reset the multiplexer
 
 tca = TCA9548A(i2c1, address=int(0x77))
 

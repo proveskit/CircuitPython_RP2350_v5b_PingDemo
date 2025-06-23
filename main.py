@@ -24,6 +24,7 @@ from lib.pysquared.hardware.busio import _spi_init, initialize_i2c_bus
 from lib.pysquared.hardware.digitalio import initialize_pin
 from lib.pysquared.hardware.imu.manager.lsm6dsox import LSM6DSOXManager
 from lib.pysquared.hardware.magnetometer.manager.lis2mdl import LIS2MDLManager
+from lib.pysquared.hardware.radio.manager.rfm9x import RFM9xManager
 from lib.pysquared.hardware.radio.manager.sx1280 import SX1280Manager
 from lib.pysquared.logger import Logger
 from lib.pysquared.nvm.counter import Counter

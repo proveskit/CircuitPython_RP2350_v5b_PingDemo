@@ -57,6 +57,7 @@
 "turbo_clock": false,
 "radio": {
     "license": "",
+    "modulation": "LoRa",
     "receiver_id": 250,
     "sender_id": 251,
     "start_time": 80000,
