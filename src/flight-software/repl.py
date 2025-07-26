@@ -220,22 +220,22 @@ def all_faces_off():
     """
     This function turns off all of the faces. Note the load switches are disabled high.
     """
-    FACE0_ENABLE.value = True
-    FACE1_ENABLE.value = True
-    FACE2_ENABLE.value = True
-    FACE3_ENABLE.value = True
-    FACE4_ENABLE.value = True
+    FACE0_ENABLE.value = False
+    FACE1_ENABLE.value = False
+    FACE2_ENABLE.value = False
+    FACE3_ENABLE.value = False
+    FACE4_ENABLE.value = False
 
 
 def all_faces_on():
     """
     This function turns on all of the faces. Note the load switches are enabled low.
     """
-    FACE0_ENABLE.value = False
-    FACE1_ENABLE.value = False
-    FACE2_ENABLE.value = False
-    FACE3_ENABLE.value = False
-    FACE4_ENABLE.value = False
+    FACE0_ENABLE.value = True
+    FACE1_ENABLE.value = True
+    FACE2_ENABLE.value = True
+    FACE3_ENABLE.value = True
+    FACE4_ENABLE.value = True
 
 
 ## Face Sensor Stuff ##
