@@ -27,7 +27,7 @@ from version import __version__
 boot_time: float = time.time()
 
 cube_ids = ["Listener1", "Listener2", "Listener3"]
-my_cubesat_id = "Listener1"
+my_cubesat_id = "MainSat"
 
 rtc = MicrocontrollerManager()
 
@@ -165,7 +165,9 @@ try:
                     sender_id = decoded_message.get("cube_id")
                     command = decoded_message.get("command")
                     if command == "pong" and sender_id == cube_id:
-                        logger.info(f"Success! Received pong for me from {sender_id}.")
+                        logger.info(
+                            f"_______!!!!!!!!!!Success! Received pong for me from {sender_id}.!!!!!!!!!!!!_______"
+                        )
                     else:
                         logger.warning(
                             f"Received unexpected message: {decoded_message}"
@@ -197,7 +199,9 @@ try:
                 if cubesat_id == my_cubesat_id:
                     command = decoded_message.get("command")
                     if command == "ping":
-                        logger.info(f"Received ping from {cubesat_id}")
+                        logger.info(
+                            f"_______!!!!!!!!!! Received ping from {cubesat_id} !!!!!!!!!!!!_______"
+                        )
                         response_message = {
                             "current_time": time.monotonic(),
                             "cube_id": my_cubesat_id,
@@ -216,7 +220,7 @@ try:
         logger.info("Entering main loop")
         while True:
             # TODO(nateinaction): Modify behavior based on power state
-            listener_nominal_power_loop()
+            nominal_power_loop()
 
     except Exception as e:
         logger.critical("Critical in Main Loop", e)
