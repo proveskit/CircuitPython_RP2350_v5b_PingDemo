@@ -27,7 +27,7 @@ from version import __version__
 boot_time: float = time.time()
 
 cube_ids = ["Listener1", "Listener2", "Listener3"]
-my_cubesat_id = "MainSat"
+my_cubesat_id = "Listener1"
 
 rtc = MicrocontrollerManager()
 
@@ -220,7 +220,7 @@ try:
         logger.info("Entering main loop")
         while True:
             # TODO(nateinaction): Modify behavior based on power state
-            nominal_power_loop()
+            listener_nominal_power_loop()
 
     except Exception as e:
         logger.critical("Critical in Main Loop", e)
