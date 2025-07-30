@@ -1,7 +1,7 @@
 {
   "battery_voltage": 5.2,
   "critical_battery_voltage": 6.6,
-  "cubesat_name": "Orpheus",
+  "cubesat_name": "PROVES-",
   "current_draw": 240.5,
   "debug": true,
   "degraded_battery_voltage": 6.6,
