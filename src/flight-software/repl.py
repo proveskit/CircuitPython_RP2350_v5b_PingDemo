@@ -8,9 +8,16 @@ from lib.adafruit_tca9548a import TCA9548A  # This is Hacky V5a Devel Stuff###
 
 import storage
 
+import microcontroller
+
+#hard reboot = microcontroller.reset()
+# do an on boot file later
 #need to call this to write new code to the board, otherwise the baord will not appear!
-def wipe_system():
+def erase_system():
     storage.erase_filesystem()
+
+def hard_reboot():
+    microcontroller.reset()
 # from lib.pysquared.Big_Data import AllFaces  ### This is Hacky V5a Devel Stuff##
 from lib.pysquared.beacon import Beacon
 from lib.pysquared.cdh import CommandDataHandler
@@ -31,18 +38,7 @@ from lib.pysquared.rtc.manager.microcontroller import MicrocontrollerManager
 from lib.pysquared.sleep_helper import SleepHelper
 from lib.pysquared.watchdog import Watchdog
 from version import __version__
-
-#TO DO: turn this into a real test for our flash memory
-def test_sd():
-    print(os.listdir())
-    print("___________")
-    os.mkdir('sd/new_folder')
-    print(os.listdir('sd'))
-    print("_______________")
-    with open('boot_out.txt', 'r') as file:
-        print(file.read())
-
-
+from utils import nominal_power_loop, listener_nominal_power_loop, test_sd, update_leaderboard, display_leaderboard, send_leaderboard, send_leaderboard_power_loop
 
 from lib.adafruit_mcp230xx.mcp23017 import (
     MCP23017,  # This is Hacky V5a Devel Stuff###
@@ -253,3 +249,4 @@ burnwire1_fire = initialize_pin(
 antenna_deployment = BurnwireManager(
     logger, burnwire_heater_enable, burnwire1_fire, enable_logic=True
 )
+

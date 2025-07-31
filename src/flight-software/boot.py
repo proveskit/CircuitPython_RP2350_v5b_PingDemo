@@ -10,6 +10,16 @@ import storage
 # This tells the computer to disconnect from the board's mass storage device (CIRCUITPY drive).
 # This is the correct method for CircuitPython 9+
 storage.disable_usb_drive()  # disable CIRCUITPY
+try:
+    with open('/sd/leaderboard.json', 'r') as file:
+        pass  # File exists
+except OSError:
+    with open('/sd/leaderboard.json', 'w') as file:
+        file.write('{}')
+
+
+
+
 # After the USB drive is disabled, we can remount the /sd filesystem
 # as writable for our CircuitPython code.
 # storage.remount("/sd", readonly=False)
