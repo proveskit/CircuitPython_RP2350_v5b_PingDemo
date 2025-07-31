@@ -3,12 +3,15 @@ import time
 
 import board
 import digitalio
-from lib.adafruit_mcp230xx.mcp23017 import (
-    MCP23017,  # This is Hacky V5a Devel Stuff###
-)
+
 from lib.adafruit_tca9548a import TCA9548A  # This is Hacky V5a Devel Stuff###
 
-# from lib.pysquared.Big_Data import AllFaces  ### This is Hacky V5a Devel Stuff###
+import storage
+
+#need to call this to write new code to the board, otherwise the baord will not appear!
+def wipe_system():
+    storage.erase_filesystem()
+# from lib.pysquared.Big_Data import AllFaces  ### This is Hacky V5a Devel Stuff##
 from lib.pysquared.beacon import Beacon
 from lib.pysquared.cdh import CommandDataHandler
 from lib.pysquared.config.config import Config
@@ -28,6 +31,22 @@ from lib.pysquared.rtc.manager.microcontroller import MicrocontrollerManager
 from lib.pysquared.sleep_helper import SleepHelper
 from lib.pysquared.watchdog import Watchdog
 from version import __version__
+
+#TO DO: turn this into a real test for our flash memory
+def test_sd():
+    print(os.listdir())
+    print("___________")
+    os.mkdir('sd/new_folder')
+    print(os.listdir('sd'))
+    print("_______________")
+    with open('boot_out.txt', 'r') as file:
+        print(file.read())
+
+
+
+from lib.adafruit_mcp230xx.mcp23017 import (
+    MCP23017,  # This is Hacky V5a Devel Stuff###
+)
 
 rtc = MicrocontrollerManager()
 
@@ -189,6 +208,8 @@ def all_faces_on():
     FACE2_ENABLE.value = True
     FACE3_ENABLE.value = True
     FACE4_ENABLE.value = True
+
+
 
 
 ## Face Sensor Stuff ##

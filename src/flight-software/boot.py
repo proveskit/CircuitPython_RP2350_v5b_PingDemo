@@ -12,9 +12,9 @@ import storage
 storage.disable_usb_drive()  # disable CIRCUITPY
 # After the USB drive is disabled, we can remount the /sd filesystem
 # as writable for our CircuitPython code.
-storage.remount("/sd", readonly=False)
+# storage.remount("/sd", readonly=False)
 
-os.mkdir("/sd", exist_ok=True)  # Ensure the lib directory exists
+# os.mkdir("/sd")  # Ensure the lib directory exists'
 
 # from lib.pysquared.logger import Logger
 
