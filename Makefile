@@ -101,7 +101,7 @@ define rsync_to_dest
 		exit 1; \
 	fi
 
-	@rsync -avh ./config.json $(2)/version.py $(1)/*.py $(1)/lib --exclude=".*" --exclude='requirements.txt' --exclude='__pycache__' $(2) --delete --times --checksum
+	@rsync -avh ./config.json $(1)/version.py $(1)/*.py $(1)/lib --exclude=".*" --exclude='requirements.txt' --exclude='__pycache__' $(2) --delete --times --checksum
 endef
 
 ##@ Build Tools

@@ -16,13 +16,11 @@ from lib.pysquared.hardware.burnwire.manager.burnwire import BurnwireManager
 from lib.pysquared.hardware.busio import _spi_init, initialize_i2c_bus
 from lib.pysquared.hardware.digitalio import initialize_pin
 from lib.pysquared.hardware.imu.manager.lsm6dsox import LSM6DSOXManager
-from lib.pysquared.hardware.light_sensor.manager.veml7700 import VEML7700Manager
 from lib.pysquared.hardware.magnetometer.manager.lis2mdl import LIS2MDLManager
 from lib.pysquared.hardware.power_monitor.manager.ina219 import INA219Manager
 from lib.pysquared.hardware.radio.manager.rfm9x import RFM9xManager
 from lib.pysquared.hardware.radio.manager.sx1280 import SX1280Manager
 from lib.pysquared.hardware.radio.packetizer.packet_manager import PacketManager
-from lib.pysquared.hardware.temperature_sensor.manager.mcp9808 import MCP9808Manager
 from lib.pysquared.logger import Logger
 from lib.pysquared.nvm.counter import Counter
 from lib.pysquared.protos.power_monitor import PowerMonitorProto
@@ -99,6 +97,7 @@ i2c0 = initialize_i2c_bus(
     board.SDA0,
     100000,
 )
+
 
 sleep_helper = SleepHelper(logger, config, watchdog)
 
@@ -200,21 +199,21 @@ mux_reset.value = True
 tca = TCA9548A(i2c1, address=int(0x77))
 
 
-light_sensor0 = VEML7700Manager(logger, tca[0])
-light_sensor1 = VEML7700Manager(logger, tca[1])
-light_sensor2 = VEML7700Manager(logger, tca[2])
-light_sensor3 = VEML7700Manager(logger, tca[3])
-light_sensor4 = VEML7700Manager(logger, tca[4])
+# light_sensor0 = VEML7700Manager(logger, tca[0])
+# light_sensor1 = VEML7700Manager(logger, tca[1])
+# light_sensor2 = VEML7700Manager(logger, tca[2])
+# light_sensor3 = VEML7700Manager(logger, tca[3])
+# light_sensor4 = VEML7700Manager(logger, tca[4])
 
 
-## Onboard Temp Sensor ##
-temp_sensor5 = MCP9808Manager(logger, i2c0, addr=25)  # Antenna Board
-temp_sensor6 = MCP9808Manager(logger, i2c1, addr=27)  # Flight Controller Board
-temp_sensor0 = MCP9808Manager(logger, tca[0], addr=27)
-temp_sensor1 = MCP9808Manager(logger, tca[1], addr=27)
-temp_sensor2 = MCP9808Manager(logger, tca[2], addr=27)
-temp_sensor3 = MCP9808Manager(logger, tca[3], addr=27)
-temp_sensor4 = MCP9808Manager(logger, tca[4], addr=27)
+# ## Onboard Temp Sensor ##
+# temp_sensor5 = MCP9808Manager(logger, i2c0, addr=25)  # Antenna Board
+# temp_sensor6 = MCP9808Manager(logger, i2c1, addr=27)  # Flight Controller Board
+# temp_sensor0 = MCP9808Manager(logger, tca[0], addr=27)
+# temp_sensor1 = MCP9808Manager(logger, tca[1], addr=27)
+# temp_sensor2 = MCP9808Manager(logger, tca[2], addr=27)
+# temp_sensor3 = MCP9808Manager(logger, tca[3], addr=27)
+# temp_sensor4 = MCP9808Manager(logger, tca[4], addr=27)
 
 
 battery_power_monitor: PowerMonitorProto = INA219Manager(logger, i2c1, 0x40)
