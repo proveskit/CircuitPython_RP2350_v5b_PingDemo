@@ -37,16 +37,47 @@ from lib.pysquared.protos.power_monitor import PowerMonitorProto
 from lib.pysquared.rtc.manager.microcontroller import MicrocontrollerManager
 from lib.pysquared.sleep_helper import SleepHelper
 from lib.pysquared.watchdog import Watchdog
-from version import __version__
-from utils import nominal_power_loop, listener_nominal_power_loop, test_sd, update_leaderboard, display_leaderboard, send_leaderboard, send_leaderboard_power_loop
 
-from lib.adafruit_mcp230xx.mcp23017 import (
-    MCP23017,  # This is Hacky V5a Devel Stuff###
+# Local imports
+from version import __version__
+from utils import (
+    nominal_power_loop,
+    listener_nominal_power_loop,
+    test_sd,
+    update_leaderboard,
+    display_leaderboard,
+    send_leaderboard,
+    send_leaderboard_power_loop,
 )
 
+
+def erase_system():
+    """Erase the filesystem to allow new code to be written to the board."""
+    storage.erase_filesystem()
+
+
+def hard_reboot():
+    """Perform a hard reboot of the microcontroller."""
+    microcontroller.reset()
+
+
+def get_temp(sensor):
+    """
+    Get temperature readings from a sensor for testing purposes.
+    
+    Args:
+        sensor: Temperature sensor object
+    """
+    for i in range(1000):
+        print(sensor.get_temperature().value)
+        time.sleep(0.1)
+
+
+# Initialize RTC
 rtc = MicrocontrollerManager()
 
-logger: Logger = Logger(
+# Initialize logger
+logger = Logger(
     error_counter=Counter(0),
     colorized=False,
 )
@@ -57,13 +88,7 @@ logger.info(
     software_version=__version__,
 )
 
-
-def get_temp(sensor):
-    for i in range(1000):
-        print(sensor.get_temperature().value)
-        time.sleep(0.1)
-
-
+# Initialize watchdog
 watchdog = Watchdog(logger, board.WDT_WDI)
 watchdog.pet()
 

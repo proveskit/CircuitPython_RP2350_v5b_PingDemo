@@ -27,8 +27,9 @@ from utils import nominal_power_loop, listener_nominal_power_loop
 
 boot_time: float = time.time()
 
-cube_ids = ["Listener1", "Listener2", "Listener3"]
-my_cubesat_id = "Listener1"
+# Satellite configuration constants
+CUBE_IDS = ["Listener1", "Listener2", "Listener3"]
+MY_CUBESAT_ID = "Listener1"
 
 rtc = MicrocontrollerManager()
 
@@ -137,8 +138,8 @@ try:
         logger.info("Entering main loop")
         while True:
             # TODO(nateinaction): Modify behavior based on power state
-            nominal_power_loop(logger, uhf_packet_manager, sleep_helper, my_cubesat_id="Listener1")
-            #nominal_power_loop(logger, uhf_packet_manager, sleep_helper, cube_id=["Listener1", "Listener2", "Listener3"])
+            listener_nominal_power_loop(logger, uhf_packet_manager, sleep_helper)
+            #nominal_power_loop(logger, uhf_packet_manager, sleep_helper, cube_ids=["Listener1", "Listener2", "Listener3"])
 
     except Exception as e:
         logger.critical("Critical in Main Loop", e)
