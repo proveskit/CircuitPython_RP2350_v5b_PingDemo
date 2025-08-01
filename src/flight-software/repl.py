@@ -3,21 +3,13 @@ import time
 
 import board
 import digitalio
-
+import microcontroller
+import storage
+from lib.adafruit_mcp230xx.mcp23017 import (
+    MCP23017,  # This is Hacky V5a Devel Stuff###
+)
 from lib.adafruit_tca9548a import TCA9548A  # This is Hacky V5a Devel Stuff###
 
-import storage
-
-import microcontroller
-
-#hard reboot = microcontroller.reset()
-# do an on boot file later
-#need to call this to write new code to the board, otherwise the baord will not appear!
-def erase_system():
-    storage.erase_filesystem()
-
-def hard_reboot():
-    microcontroller.reset()
 # from lib.pysquared.Big_Data import AllFaces  ### This is Hacky V5a Devel Stuff##
 from lib.pysquared.beacon import Beacon
 from lib.pysquared.cdh import CommandDataHandler
@@ -40,15 +32,6 @@ from lib.pysquared.watchdog import Watchdog
 
 # Local imports
 from version import __version__
-from utils import (
-    nominal_power_loop,
-    listener_nominal_power_loop,
-    test_sd,
-    update_leaderboard,
-    display_leaderboard,
-    send_leaderboard,
-    send_leaderboard_power_loop,
-)
 
 
 def erase_system():
@@ -64,7 +47,7 @@ def hard_reboot():
 def get_temp(sensor):
     """
     Get temperature readings from a sensor for testing purposes.
-    
+
     Args:
         sensor: Temperature sensor object
     """
@@ -231,8 +214,6 @@ def all_faces_on():
     FACE4_ENABLE.value = True
 
 
-
-
 ## Face Sensor Stuff ##
 
 # This is the TCA9548A I2C Multiplexer
@@ -274,4 +255,3 @@ burnwire1_fire = initialize_pin(
 antenna_deployment = BurnwireManager(
     logger, burnwire_heater_enable, burnwire1_fire, enable_logic=True
 )
-

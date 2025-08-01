@@ -1,5 +1,3 @@
-import gc
-import json
 import os
 import time
 
@@ -22,8 +20,8 @@ from lib.pysquared.nvm.counter import Counter
 from lib.pysquared.rtc.manager.microcontroller import MicrocontrollerManager
 from lib.pysquared.sleep_helper import SleepHelper
 from lib.pysquared.watchdog import Watchdog
+from utils import listener_nominal_power_loop
 from version import __version__
-from utils import nominal_power_loop, listener_nominal_power_loop
 
 boot_time: float = time.time()
 
@@ -139,7 +137,7 @@ try:
         while True:
             # TODO(nateinaction): Modify behavior based on power state
             listener_nominal_power_loop(logger, uhf_packet_manager, sleep_helper)
-            #nominal_power_loop(logger, uhf_packet_manager, sleep_helper, cube_ids=["Listener1", "Listener2", "Listener3"])
+            # nominal_power_loop(logger, uhf_packet_manager, sleep_helper, cube_ids=["Listener1", "Listener2", "Listener3"])
 
     except Exception as e:
         logger.critical("Critical in Main Loop", e)

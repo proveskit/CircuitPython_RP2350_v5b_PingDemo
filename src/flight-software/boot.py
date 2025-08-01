@@ -1,7 +1,6 @@
 # from busio import _spi_init
 # import os
 # from lib.pysquared.nvm.counter import Counter
-import os
 
 # import board
 # import sdcardio
@@ -11,13 +10,11 @@ import storage
 # This is the correct method for CircuitPython 9+
 storage.disable_usb_drive()  # disable CIRCUITPY
 try:
-    with open('/sd/leaderboard.json', 'r') as file:
+    with open("/sd/leaderboard.json", "r") as file:
         pass  # File exists
 except OSError:
-    with open('/sd/leaderboard.json', 'w') as file:
-        file.write('{}')
-
-
+    with open("/sd/leaderboard.json", "w") as file:
+        file.write("{}")
 
 
 # After the USB drive is disabled, we can remount the /sd filesystem
