@@ -13,7 +13,6 @@ from lib.pysquared.hardware.digitalio import initialize_pin
 from lib.pysquared.hardware.imu.manager.lsm6dsox import LSM6DSOXManager
 from lib.pysquared.hardware.magnetometer.manager.lis2mdl import LIS2MDLManager
 from lib.pysquared.hardware.radio.manager.rfm9x import RFM9xManager
-from lib.pysquared.hardware.radio.manager.sx1280 import SX1280Manager
 from lib.pysquared.hardware.radio.packetizer.packet_manager import PacketManager
 from lib.pysquared.logger import Logger
 from lib.pysquared.nvm.counter import Counter
@@ -24,10 +23,6 @@ from utils import listener_nominal_power_loop
 from version import __version__
 
 boot_time: float = time.time()
-
-# Satellite configuration constants
-CUBE_IDS = ["Listener1", "Listener2", "Listener3"]
-MY_CUBESAT_ID = "Listener1"
 
 rtc = MicrocontrollerManager()
 
@@ -76,17 +71,17 @@ try:
         board.SPI1_MISO,
     )
 
-    sband_radio = SX1280Manager(
-        logger,
-        config.radio,
-        spi1,
-        initialize_pin(logger, board.SPI1_CS0, digitalio.Direction.OUTPUT, True),
-        initialize_pin(logger, board.RF2_RST, digitalio.Direction.OUTPUT, True),
-        initialize_pin(logger, board.RF2_IO0, digitalio.Direction.OUTPUT, True),
-        2.4,
-        initialize_pin(logger, board.RF2_TX_EN, digitalio.Direction.OUTPUT, False),
-        initialize_pin(logger, board.RF2_RX_EN, digitalio.Direction.OUTPUT, False),
-    )
+    # sband_radio = SX1280Manager(
+    #     logger,
+    #     config.radio,
+    #     spi1,
+    #     initialize_pin(logger, board.SPI1_CS0, digitalio.Direction.OUTPUT, True),
+    #     initialize_pin(logger, board.RF2_RST, digitalio.Direction.OUTPUT, True),
+    #     initialize_pin(logger, board.RF2_IO0, digitalio.Direction.OUTPUT, True),
+    #     2.4,
+    #     initialize_pin(logger, board.RF2_TX_EN, digitalio.Direction.OUTPUT, False),
+    #     initialize_pin(logger, board.RF2_RX_EN, digitalio.Direction.OUTPUT, False),
+    # )
 
     i2c1 = initialize_i2c_bus(
         logger,
@@ -127,17 +122,21 @@ try:
         imu,
         magnetometer,
         uhf_radio,
-        sband_radio,
         error_count,
         boot_count,
     )
 
     try:
-        logger.info("Entering main loop")
+        logger.info("Listener main loop")
         while True:
             # TODO(nateinaction): Modify behavior based on power state
+            # listener_nominal_power_loop(logger, uhf_packet_manager, sleep_helper)
             listener_nominal_power_loop(logger, uhf_packet_manager, sleep_helper)
-            # nominal_power_loop(logger, uhf_packet_manager, sleep_helper, cube_ids=["Listener1", "Listener2", "Listener3"])
+            # send_leaderboard_power_loop(
+            #     logger, uhf_packet_manager, sleep_helper, cube_ids=["Listener1"]
+            # )
+            # TO DO: Error checking so if fails to open or read from file the main sat knows
+            # TO DO: Make the cubesat name a callable parameter
 
     except Exception as e:
         logger.critical("Critical in Main Loop", e)

@@ -21,7 +21,6 @@ from lib.pysquared.hardware.imu.manager.lsm6dsox import LSM6DSOXManager
 from lib.pysquared.hardware.magnetometer.manager.lis2mdl import LIS2MDLManager
 from lib.pysquared.hardware.power_monitor.manager.ina219 import INA219Manager
 from lib.pysquared.hardware.radio.manager.rfm9x import RFM9xManager
-from lib.pysquared.hardware.radio.manager.sx1280 import SX1280Manager
 from lib.pysquared.hardware.radio.packetizer.packet_manager import PacketManager
 from lib.pysquared.logger import Logger
 from lib.pysquared.nvm.counter import Counter
@@ -95,17 +94,17 @@ spi1 = _spi_init(
     board.SPI1_MISO,
 )
 
-sband_radio = SX1280Manager(
-    logger,
-    config.radio,
-    spi1,
-    initialize_pin(logger, board.SPI1_CS0, digitalio.Direction.OUTPUT, True),
-    initialize_pin(logger, board.RF2_RST, digitalio.Direction.OUTPUT, True),
-    initialize_pin(logger, board.RF2_IO0, digitalio.Direction.OUTPUT, True),
-    2.4,
-    initialize_pin(logger, board.RF2_TX_EN, digitalio.Direction.OUTPUT, False),
-    initialize_pin(logger, board.RF2_RX_EN, digitalio.Direction.OUTPUT, False),
-)
+# sband_radio = SX1280Manager(
+#     logger,
+#     config.radio,
+#     spi1,
+#     initialize_pin(logger, board.SPI1_CS0, digitalio.Direction.OUTPUT, True),
+#     initialize_pin(logger, board.RF2_RST, digitalio.Direction.OUTPUT, True),
+#     initialize_pin(logger, board.RF2_IO0, digitalio.Direction.OUTPUT, True),
+#     2.4,
+#     initialize_pin(logger, board.RF2_TX_EN, digitalio.Direction.OUTPUT, False),
+#     initialize_pin(logger, board.RF2_RX_EN, digitalio.Direction.OUTPUT, False),
+# )
 
 i2c1 = initialize_i2c_bus(
     logger,
@@ -154,7 +153,6 @@ beacon = Beacon(
     imu,
     magnetometer,
     uhf_radio,
-    sband_radio,
 )
 
 ## Initialize the MCP23017 GPIO Expander and its pins ##

@@ -4,16 +4,27 @@
 
 # import board
 # import sdcardio
+import os
+
 import storage
 
 # This tells the computer to disconnect from the board's mass storage device (CIRCUITPY drive).
 # This is the correct method for CircuitPython 9+
+
+
+# wait_time = 0.2
+# time.sleep(wait_time)
 storage.disable_usb_drive()  # disable CIRCUITPY
+# Ensure 'sd' directory exists
+if "sd" not in os.listdir():
+    os.mkdir("sd")
+
+# Ensure the leaderboard.json file exists with "{}" if not
 try:
-    with open("/sd/leaderboard.json", "r") as file:
+    with open("sd/leaderboard.json", "r") as file:
         pass  # File exists
 except OSError:
-    with open("/sd/leaderboard.json", "w") as file:
+    with open("sd/leaderboard.json", "w") as file:
         file.write("{}")
 
 
