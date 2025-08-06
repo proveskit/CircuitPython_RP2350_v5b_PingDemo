@@ -1,3 +1,4 @@
+import json
 import os
 import time
 
@@ -5,6 +6,7 @@ import board
 import digitalio
 import microcontroller
 import storage
+import supervisor
 from lib.adafruit_mcp230xx.mcp23017 import (
     MCP23017,  # This is Hacky V5a Devel Stuff###
 )
@@ -31,6 +33,9 @@ from lib.pysquared.watchdog import Watchdog
 
 # Local imports
 from version import __version__
+
+SENDING_NEW_NAME = "sending_new_name"
+UPDATING_NEW_NAME = "updating_new_name"
 
 
 def erase_system():
@@ -62,6 +67,7 @@ rtc = MicrocontrollerManager()
 logger = Logger(
     error_counter=Counter(0),
     colorized=False,
+    log_level=3,
 )
 
 logger.info(
@@ -253,3 +259,89 @@ burnwire1_fire = initialize_pin(
 antenna_deployment = BurnwireManager(
     logger, burnwire_heater_enable, burnwire1_fire, enable_logic=True
 )
+
+
+def listen():
+    try:
+        if supervisor.runtime.serial_bytes_available:
+            typed = input().strip()
+            if typed:
+                handle_input(typed)
+        b = uhf_packet_manager.listen(1)
+        if b is not None:
+            logger.info(message="Received response", responses=b.decode("utf-8"))
+    except KeyboardInterrupt:
+        logger.debug("Keyboard interrupt received, exiting listen mode.")
+
+
+def handle_input(cmd_selection, my_callsign=None):
+    name = cmd_selection
+
+    if my_callsign is None:
+        my_callsign = config.radio.license
+    response_message = {
+        "current_time": time.monotonic(),
+        "callsign": my_callsign,
+        "command": SENDING_NEW_NAME,
+        "name": name,
+    }
+    encoded_response = json.dumps(response_message, separators=(",", ":")).encode(
+        "utf-8"
+    )
+
+    uhf_packet_manager.send(encoded_response)
+
+    print("________________________________ \n\n\n")
+    print(f"Name being sent to leaderboard! {name}")
+
+    received_message = uhf_packet_manager.listen(1)
+
+    if received_message is not None:
+        decoded_message = json.loads(received_message.decode("utf-8"))
+        command = decoded_message.get("command")
+        if command == UPDATING_NEW_NAME:
+            my_alledged_callsign = decoded_message.get("recepient")
+            if my_alledged_callsign == my_callsign:
+                amt = decoded_message.get("amt")
+                selected = decoded_message.get("selected")
+                display_message(amt, selected)
+
+    else:
+        print("Failed to Update. Try Sending again!")
+    print("\n\n\n________________________________")
+
+
+def print_cubesat():
+    cubesat = r"""
+     --|               |--
+       |               |
+       |               |
+     --|               |--
+        \_____________/
+         |\           /|
+         | \_________/ |
+         | |░░░░░░░░░| |
+         | |░░░░░░░░░| |
+         | |░░░░░░░░░| |
+         | |░░░░░░░░░| |
+         | |_________| |
+         |/___________\|
+    """
+    print(cubesat)
+
+
+def display_message(booths_remaining, selected):
+    if booths_remaining == 0:
+        print("You have visited all the booths!!! Come claim your prize!")
+        print_cubesat()
+    else:
+        print(f"Congratulations! You have visited {', '.join(selected)}.")
+        if booths_remaining == 1:
+            print(f"You still have {booths_remaining} booth left to visit!")
+        else:
+            print(f"You still have {booths_remaining} booths left to visit!")
+
+
+while True:
+    listen()
+    time.sleep(1)

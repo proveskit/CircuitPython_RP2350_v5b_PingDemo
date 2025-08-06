@@ -200,7 +200,7 @@ def listener_nominal_power_loop(
                         my_callsign,
                         config.radio.default_callsigns,
                     )
-        except ValueError:
+        except (ValueError, UnicodeError):
             logger.error("Failed to decode message")
 
 
