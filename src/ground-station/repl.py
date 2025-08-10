@@ -23,6 +23,9 @@ RETURN_LEADERBOARD_MAIN = "return_leaderboard_main"
 UPDATE_LEADERBOARD = "update_leaderboard"
 SENDING_NEW_NAME = "sending_new_name"
 UPDATING_NEW_NAME = "updating_new_name"
+SEND_MESSAGE = "send_message"
+SEND_MESSAGE_AKNOW = "send_message_aknowlagment"
+
 
 byte_dict = {
     "Main": b"10000",
@@ -32,13 +35,13 @@ byte_dict = {
     "cygnet": b"00001",
 }
 
-key_order = ["Main", "Portla", "hawaii", "texas", "cygnet"]
+key_order = ["northe", "Portla", "hawaii", "texas", "cygnet"]
 
 
 logger: Logger = Logger(
     error_counter=Counter(1),
     colorized=False,
-    log_level=3,
+    # log_level=3,
 )
 config: Config = Config("config.json")
 
@@ -191,6 +194,21 @@ def listen_display(my_callsign=None):
                             print(
                                 f"Error: {sender_callsign} is not a configured Cubesat"
                             )
+                    elif command == SEND_MESSAGE:
+                        sender_callsign = decoded_message.get("callsign")
+                        if sender_callsign != my_callsign:
+                            message = decoded_message.get("message")
+                            print(message)
+
+                            response_message = {
+                                "current_time": time.monotonic(),
+                                "callsign": my_callsign,
+                                "command": SEND_MESSAGE_AKNOW,
+                            }
+                            encoded_response = json.dumps(
+                                response_message, separators=(",", ":")
+                            ).encode("utf-8")
+                            packet_manager.send(encoded_response)
                 except ValueError:
                     logger.error("Failed to decode message")
     except KeyboardInterrupt:
@@ -198,7 +216,47 @@ def listen_display(my_callsign=None):
 
 
 def handle_input(name):
-    display_leaderboard_status_from_name(name)
+    if name[0] == ">":
+        send_message(name)
+    else:
+        display_leaderboard_status_from_name(name)
+
+
+def send_message(message, my_callsign=None):
+    if my_callsign is None:
+        my_callsign = config.radio.license
+    print("________________________________ \n\n\n")
+    print(f"{my_callsign} is sending...")
+    msg = "message received from " + my_callsign + " " + message
+    response_message = {
+        "current_time": time.monotonic(),
+        "callsign": my_callsign,
+        "command": SEND_MESSAGE,
+        "message": msg,
+    }
+    encoded_response = json.dumps(response_message, separators=(",", ":")).encode(
+        "utf-8"
+    )
+
+    # TODO fix this not retutning False when radio send is False
+    if packet_manager.send(encoded_response):
+        print("________________________________ \n\n\n")
+        print("Message Sent!")
+    else:
+        print("________________________________ \n\n\n")
+        print("Message Failed to Send! Try again")
+
+    # TO DO check if this can verify from multiple sats
+    received_message = packet_manager.listen(5)
+
+    if received_message is not None:
+        decoded_message = json.loads(received_message.decode("utf-8"))
+        command = decoded_message.get("command")
+        if command == SEND_MESSAGE_AKNOW:
+            recepient = decoded_message.get("callsign")
+            print(f"{recepient} recieved the message")
+
+    print(" \n\n\n________________________________")
 
 
 def display_top_10():

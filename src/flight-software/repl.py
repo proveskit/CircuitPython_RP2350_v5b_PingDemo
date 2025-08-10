@@ -69,7 +69,7 @@ rtc = MicrocontrollerManager()
 logger = Logger(
     error_counter=Counter(0),
     colorized=False,
-    # log_level=3,
+    log_level=3,
 )
 
 logger.info(
@@ -282,18 +282,15 @@ def listen(my_callsign=None):
                     message = decoded_message.get("message")
                     print(message)
 
-    #                 response_message = {
-    #                     "current_time" : time.monotonic(),
-    #                     "callsign" : my_callsign,
-    #                     "command" : SEND_MESSAGE_AKNOW,
-    #                 }
-    #                 encoded_response = json.dumps(response_message, separators=(",", ":")).encode(
-    #                     "utf-8"
-    #                 if uhf_packet_manager.send(encoded_response):
-    #                     print("aknowlagment send back")
-    #                 else:
-    #                     print("aknowlagemnt not sent back")
-    # )
+                    response_message = {
+                        "current_time": time.monotonic(),
+                        "callsign": my_callsign,
+                        "command": SEND_MESSAGE_AKNOW,
+                    }
+                    encoded_response = json.dumps(
+                        response_message, separators=(",", ":")
+                    ).encode("utf-8")
+                    uhf_packet_manager.send(encoded_response)
 
     except KeyboardInterrupt:
         logger.debug("Keyboard interrupt received, exiting listen mode.")
@@ -315,6 +312,8 @@ def handle_input(cmd, my_callsign=None):
 def send_message(message, my_callsign=None):
     if my_callsign is None:
         my_callsign = config.radio.license
+    print("________________________________ \n\n\n")
+    print(f"{my_callsign} is sending...")
     msg = "message received from " + my_callsign + " " + message
     response_message = {
         "current_time": time.monotonic(),
@@ -334,7 +333,15 @@ def send_message(message, my_callsign=None):
         print("________________________________ \n\n\n")
         print("Message Failed to Send! Try again")
 
-    # received_message = uhf_packet_manager.listen(5)
+    # TO DO check if this can verify from multiple sats
+    received_message = uhf_packet_manager.listen(5)
+
+    if received_message is not None:
+        decoded_message = json.loads(received_message.decode("utf-8"))
+        command = decoded_message.get("command")
+        if command == SEND_MESSAGE_AKNOW:
+            recepient = decoded_message.get("callsign")
+            print(f"{recepient} recieved the message")
 
     print(" \n\n\n________________________________")
 
