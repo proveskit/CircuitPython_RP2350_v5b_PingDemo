@@ -131,9 +131,11 @@ try:
         while True:
             # TODO(nateinaction): Modify behavior based on power state
             # listener_nominal_power_loop(logger, uhf_packet_manager, sleep_helper)
-            listener_nominal_power_loop(logger, uhf_packet_manager, sleep_helper)
+            listener_nominal_power_loop(
+                logger, uhf_packet_manager, sleep_helper, config
+            )
             # send_leaderboard_power_loop(
-            #     logger, uhf_packet_manager, sleep_helper, cube_ids=["Listener1"]
+            #     logger, uhf_packet_manager, sleep_helper, config, callsigns=["Listener1"]
             # )
             # TO DO: Error checking so if fails to open or read from file the main sat knows
             # TO DO: Make the cubesat name a callable parameter

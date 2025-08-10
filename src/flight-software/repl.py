@@ -36,6 +36,8 @@ from version import __version__
 
 SENDING_NEW_NAME = "sending_new_name"
 UPDATING_NEW_NAME = "updating_new_name"
+SEND_MESSAGE = "send_message"
+SEND_MESSAGE_AKNOW = "send_message_aknowlagment"
 
 
 def erase_system():
@@ -67,7 +69,7 @@ rtc = MicrocontrollerManager()
 logger = Logger(
     error_counter=Counter(0),
     colorized=False,
-    log_level=3,
+    # log_level=3,
 )
 
 logger.info(
@@ -261,7 +263,9 @@ antenna_deployment = BurnwireManager(
 )
 
 
-def listen():
+def listen(my_callsign=None):
+    if my_callsign is None:
+        my_callsign = config.radio.license
     try:
         if supervisor.runtime.serial_bytes_available:
             typed = input().strip()
@@ -270,13 +274,72 @@ def listen():
         b = uhf_packet_manager.listen(1)
         if b is not None:
             logger.info(message="Received response", responses=b.decode("utf-8"))
+            decoded_message = json.loads(b.decode("utf-8"))
+            command = decoded_message.get("command")
+            if command == SEND_MESSAGE:
+                sender_callsign = decoded_message.get("callsign")
+                if sender_callsign != my_callsign:
+                    message = decoded_message.get("message")
+                    print(message)
+
+    #                 response_message = {
+    #                     "current_time" : time.monotonic(),
+    #                     "callsign" : my_callsign,
+    #                     "command" : SEND_MESSAGE_AKNOW,
+    #                 }
+    #                 encoded_response = json.dumps(response_message, separators=(",", ":")).encode(
+    #                     "utf-8"
+    #                 if uhf_packet_manager.send(encoded_response):
+    #                     print("aknowlagment send back")
+    #                 else:
+    #                     print("aknowlagemnt not sent back")
+    # )
+
     except KeyboardInterrupt:
         logger.debug("Keyboard interrupt received, exiting listen mode.")
 
 
-def handle_input(cmd_selection, my_callsign=None):
-    name = cmd_selection
+def handle_input(cmd, my_callsign=None):
+    if cmd[0] == ">":
+        send_message(cmd, my_callsign)
+    # else if cmd == 'PING':
+    #     # to make ping work, need to do something when recieving the ping logs as well
+    #     # also need to add something so that the sats ping back and you register what callsigns pinged back
+    #     # also need to check for race conditions, can we print them all (id assume so butshould be tested)
+    #     utils.nominal_power_loop(logger, uhf_packet_manager, sleep_helper, config)
+    else:
+        # this updates the name in the leaderboard
+        send_name_out(cmd, my_callsign)
 
+
+def send_message(message, my_callsign=None):
+    if my_callsign is None:
+        my_callsign = config.radio.license
+    msg = "message received from " + my_callsign + " " + message
+    response_message = {
+        "current_time": time.monotonic(),
+        "callsign": my_callsign,
+        "command": SEND_MESSAGE,
+        "message": msg,
+    }
+    encoded_response = json.dumps(response_message, separators=(",", ":")).encode(
+        "utf-8"
+    )
+
+    # TODO fix this not retutning False when radio send is False
+    if uhf_packet_manager.send(encoded_response):
+        print("________________________________ \n\n\n")
+        print("Message Sent!")
+    else:
+        print("________________________________ \n\n\n")
+        print("Message Failed to Send! Try again")
+
+    # received_message = uhf_packet_manager.listen(5)
+
+    print(" \n\n\n________________________________")
+
+
+def send_name_out(name, my_callsign=None):
     if my_callsign is None:
         my_callsign = config.radio.license
     response_message = {
@@ -295,6 +358,9 @@ def handle_input(cmd_selection, my_callsign=None):
     print(f"Name being sent to leaderboard! {name}")
 
     received_message = uhf_packet_manager.listen(1)
+    if received_message is not None:
+        decoded_message = json.loads(received_message.decode("utf-8"))
+        command = decoded_message.get("command")
 
     if received_message is not None:
         decoded_message = json.loads(received_message.decode("utf-8"))
