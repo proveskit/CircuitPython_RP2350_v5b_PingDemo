@@ -159,7 +159,7 @@ def listen_display(my_callsign=None):
                 display_top_10()
                 last_display_time = current_time
 
-            received_message = packet_manager.listen(1)
+            received_message = packet_manager.listen(3)
             if received_message is not None:
                 # logger.debug("recieved not None")
                 try:

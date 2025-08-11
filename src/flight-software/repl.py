@@ -281,7 +281,7 @@ def listen_1U(my_callsign=None):
             if typed:
                 handle_input(typed)
                 print("\n finished sending! \n")
-        b = uhf_packet_manager.listen(1)
+        b = uhf_packet_manager.listen(10)
         if b is not None:
             logger.info(message="Received response", responses=b.decode("utf-8"))
             decoded_message = json.loads(b.decode("utf-8"))
@@ -320,7 +320,7 @@ def listen_2U(my_callsign=None):
             if typed:
                 handle_input(typed)
                 print("\n finished sending! \n")
-        b = uhf_packet_manager.listen(1)
+        b = uhf_packet_manager.listen(10)
         if b is not None:
             logger.info(message="Received response", responses=b.decode("utf-8"))
             decoded_message = json.loads(b.decode("utf-8"))
@@ -587,5 +587,5 @@ def display_message(booths_remaining, selected):
 
 
 while True:
-    listen_2U()
+    listen_1U()
     time.sleep(1)
