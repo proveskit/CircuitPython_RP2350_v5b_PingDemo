@@ -3,6 +3,7 @@ import os
 import time
 
 import board
+import busio
 import digitalio
 import microcontroller
 import storage
@@ -38,6 +39,11 @@ SENDING_NEW_NAME = "sending_new_name"
 UPDATING_NEW_NAME = "updating_new_name"
 SEND_MESSAGE = "send_message"
 SEND_MESSAGE_AKNOW = "send_message_aknowlagment"
+
+SEND_NOTIFICATION_BATCH_CONTINUOUS = "send_notification_batch_continuous"
+RECEIVE_NOTIFICATION_BATCH_CONTINUOUS = "receive_notification_batch_continuous"
+
+key_order = ["northe", "texas", "cygnet", "ground"]
 
 
 def erase_system():
@@ -101,6 +107,9 @@ spi1 = _spi_init(
     board.SPI1_MOSI,
     board.SPI1_MISO,
 )
+
+# this code is only for CYGNET
+uart = busio.UART(board.TX, board.RX, baudrate=9600, timeout=10)
 
 # sband_radio = SX1280Manager(
 #     logger,
@@ -263,7 +272,7 @@ antenna_deployment = BurnwireManager(
 )
 
 
-def listen(my_callsign=None):
+def listen_1U(my_callsign=None):
     if my_callsign is None:
         my_callsign = config.radio.license
     try:
@@ -271,14 +280,15 @@ def listen(my_callsign=None):
             typed = input().strip()
             if typed:
                 handle_input(typed)
+                print("\n finished sending! \n")
         b = uhf_packet_manager.listen(1)
         if b is not None:
             logger.info(message="Received response", responses=b.decode("utf-8"))
             decoded_message = json.loads(b.decode("utf-8"))
             command = decoded_message.get("command")
             if command == SEND_MESSAGE:
-                sender_callsign = decoded_message.get("callsign")
-                if sender_callsign != my_callsign:
+                recipient_callsign = decoded_message.get("recipient")
+                if recipient_callsign == my_callsign:
                     message = decoded_message.get("message")
                     print(message)
 
@@ -291,14 +301,180 @@ def listen(my_callsign=None):
                         response_message, separators=(",", ":")
                     ).encode("utf-8")
                     uhf_packet_manager.send(encoded_response)
-
+            if command == RECEIVE_NOTIFICATION_BATCH_CONTINUOUS:
+                if decoded_message.get("callsign") != my_callsign:
+                    data = decoded_message.get("data")
+                    print("______________________\n\n")
+                    print(f"RAD DATA: \n{data} \n")
+                    print("\n\n______________________")
     except KeyboardInterrupt:
         logger.debug("Keyboard interrupt received, exiting listen mode.")
 
 
+def listen_2U(my_callsign=None):
+    if my_callsign is None:
+        my_callsign = config.radio.license
+    try:
+        if supervisor.runtime.serial_bytes_available:
+            typed = input().strip()
+            if typed:
+                handle_input(typed)
+                print("\n finished sending! \n")
+        b = uhf_packet_manager.listen(1)
+        if b is not None:
+            logger.info(message="Received response", responses=b.decode("utf-8"))
+            decoded_message = json.loads(b.decode("utf-8"))
+            command = decoded_message.get("command")
+            if command == SEND_MESSAGE:
+                recipient_callsign = decoded_message.get("recipient")
+                if recipient_callsign == my_callsign:
+                    message = decoded_message.get("message")
+                    print(message)
+
+                    response_message = {
+                        "current_time": time.monotonic(),
+                        "callsign": my_callsign,
+                        "command": SEND_MESSAGE_AKNOW,
+                    }
+                    encoded_response = json.dumps(
+                        response_message, separators=(",", ":")
+                    ).encode("utf-8")
+                    uhf_packet_manager.send(encoded_response)
+            if command == SEND_NOTIFICATION_BATCH_CONTINUOUS:
+                receive_notification_UART_batch_single()
+    except KeyboardInterrupt:
+        logger.debug("Keyboard interrupt received, exiting listen mode.")
+
+
+def receive_notification_UART_batch_single(collection_time=5):
+    print("collecting....")
+    batch_data = ""
+    """Collect UART messages for specified time, then send all at once"""
+    buffer = bytearray()
+    END_MARKER = b"\n --- \n"
+    collected_messages = []
+    start_time = time.time()
+
+    print(f"Collecting data for {collection_time} seconds...")
+
+    try:
+        while time.time() - start_time < collection_time:
+            data = uart.read(64)  # Read in chunks
+            if data:
+                buffer.extend(data)
+
+                # Process all complete messages in buffer
+                while END_MARKER in buffer:
+                    # Split at the end marker
+                    msg_end = buffer.find(END_MARKER) + len(END_MARKER)
+                    full_msg = buffer[:msg_end]  # Extract full message
+                    buffer = buffer[msg_end:]  # Remove processed part
+
+                    try:
+                        decoded_msg = full_msg.decode().strip()
+                        print(f"Collected: {decoded_msg}")  # Show what we're collecting
+                        collected_messages.append(decoded_msg)
+                    except UnicodeError:
+                        print("Bad data:", full_msg)
+
+            time.sleep(0.001)  # Small delay to prevent CPU overload
+
+        # Collection time is up - now send all messages
+        print(f"\nCollection complete! Collected {len(collected_messages)} messages")
+
+        if collected_messages:
+            # Combine all messages into one batch
+            batch_data = "\n".join(collected_messages)
+
+            # Print the batch to terminal before sending
+            print("\n" + "=" * 50)
+            print("BATCH DATA TO BE SENT:")
+            print("=" * 50)
+            print(batch_data)
+            print("=" * 50)
+
+            response_message = {
+                "current_time": time.monotonic(),
+                "callsign": config.radio.license,
+                "command": RECEIVE_NOTIFICATION_BATCH_CONTINUOUS,
+                "data": batch_data,
+            }
+
+            encoded_response = json.dumps(
+                response_message, separators=(",", ":")
+            ).encode("utf-8")
+            print(f"sending batch notification: {encoded_response}")
+            sleep_helper.safe_sleep(1)
+            uhf_packet_manager.send(encoded_response)
+
+            print(f"Sending batch: {len(batch_data)} bytes")
+
+        else:
+            print("No messages collected during the time period")
+
+            response_message = {
+                "current_time": time.monotonic(),
+                "callsign": config.radio.license,
+                "command": RECEIVE_NOTIFICATION_BATCH_CONTINUOUS,
+                "data": "No Data Found",
+            }
+
+            encoded_response = json.dumps(response_message, separators=(",", ":"))
+            print(f"sending batch notification: {encoded_response}")
+            sleep_helper.safe_sleep(1)
+            uhf_packet_manager.send(encoded_response.encode("utf-8"))
+
+            print(f"Sending batch: {len(batch_data)} bytes")
+
+            # Send the raw batch data
+            uhf_packet_manager.send(batch_data.encode("utf-8"))
+
+        return batch_data
+
+    except KeyboardInterrupt:
+        print(
+            f"\nCollection interrupted! Collected {len(collected_messages)} messages so far"
+        )
+        if collected_messages:
+            # Send what we have collected so far
+            batch_data = "\n".join(collected_messages)
+
+            # Print the partial batch to terminal before sending
+            print("\n" + "=" * 50)
+            print("PARTIAL BATCH DATA TO BE SENT:")
+            print("=" * 50)
+            print(batch_data)
+            print("=" * 50)
+
+            uhf_packet_manager.send(batch_data.encode("utf-8"))
+            print("Partial batch sent!")
+            return batch_data
+    except Exception as e:
+        print(f"Error during batch collection: {e}")
+
+
 def handle_input(cmd, my_callsign=None):
+    if my_callsign is None:
+        my_callsign = config.radio.license
     if cmd[0] == ">":
-        send_message(cmd, my_callsign)
+        for cube in key_order:
+            if cube != my_callsign:
+                print("------------\n\n")
+                print(f"sending to {cube}...")
+                send_message(cmd, cube, my_callsign)
+                print(f"finished sending to {cube}")
+                print("\n\n------------")
+    elif cmd == "GETRAD":
+        response_message = {
+            "current_time": time.monotonic(),
+            "callsign": my_callsign,
+            "command": SEND_NOTIFICATION_BATCH_CONTINUOUS,
+        }
+        encoded_response = json.dumps(response_message, separators=(",", ":")).encode(
+            "utf-8"
+        )
+        uhf_packet_manager.send(encoded_response)
+
     # else if cmd == 'PING':
     #     # to make ping work, need to do something when recieving the ping logs as well
     #     # also need to add something so that the sats ping back and you register what callsigns pinged back
@@ -309,7 +485,7 @@ def handle_input(cmd, my_callsign=None):
         send_name_out(cmd, my_callsign)
 
 
-def send_message(message, my_callsign=None):
+def send_message(message, cube, my_callsign=None):
     if my_callsign is None:
         my_callsign = config.radio.license
     print("________________________________ \n\n\n")
@@ -318,6 +494,7 @@ def send_message(message, my_callsign=None):
     response_message = {
         "current_time": time.monotonic(),
         "callsign": my_callsign,
+        "recipient": cube,
         "command": SEND_MESSAGE,
         "message": msg,
     }
@@ -326,22 +503,19 @@ def send_message(message, my_callsign=None):
     )
 
     # TODO fix this not retutning False when radio send is False
-    if uhf_packet_manager.send(encoded_response):
-        print("________________________________ \n\n\n")
-        print("Message Sent!")
-    else:
-        print("________________________________ \n\n\n")
-        print("Message Failed to Send! Try again")
+    uhf_packet_manager.send(encoded_response)
 
     # TO DO check if this can verify from multiple sats
-    received_message = uhf_packet_manager.listen(5)
-
-    if received_message is not None:
-        decoded_message = json.loads(received_message.decode("utf-8"))
-        command = decoded_message.get("command")
-        if command == SEND_MESSAGE_AKNOW:
-            recepient = decoded_message.get("callsign")
-            print(f"{recepient} recieved the message")
+    start_time = time.monotonic()
+    while time.monotonic() < (start_time + 10):
+        received_message = uhf_packet_manager.listen(1)
+        if received_message is not None:
+            decoded_message = json.loads(received_message.decode("utf-8"))
+            command = decoded_message.get("command")
+            if command == SEND_MESSAGE_AKNOW:
+                recepient = decoded_message.get("callsign")
+                print(f"{recepient} recieved the message")
+                break
 
     print(" \n\n\n________________________________")
 
@@ -365,9 +539,6 @@ def send_name_out(name, my_callsign=None):
     print(f"Name being sent to leaderboard! {name}")
 
     received_message = uhf_packet_manager.listen(1)
-    if received_message is not None:
-        decoded_message = json.loads(received_message.decode("utf-8"))
-        command = decoded_message.get("command")
 
     if received_message is not None:
         decoded_message = json.loads(received_message.decode("utf-8"))
@@ -416,5 +587,5 @@ def display_message(booths_remaining, selected):
 
 
 while True:
-    listen()
+    listen_2U()
     time.sleep(1)

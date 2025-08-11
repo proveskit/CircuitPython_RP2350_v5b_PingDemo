@@ -26,22 +26,25 @@ UPDATING_NEW_NAME = "updating_new_name"
 SEND_MESSAGE = "send_message"
 SEND_MESSAGE_AKNOW = "send_message_aknowlagment"
 
+SEND_NOTIFICATION_BATCH_CONTINUOUS = "send_notification_batch_continuous"
+RECEIVE_NOTIFICATION_BATCH_CONTINUOUS = "receive_notification_batch_continuous"
+
 
 byte_dict = {
-    "Main": b"10000",
+    "northe": b"10000",
     "Portla": b"01000",
     "hawaii": b"00100",
     "texas": b"00010",
     "cygnet": b"00001",
 }
 
-key_order = ["northe", "Portla", "hawaii", "texas", "cygnet"]
+key_order = ["northe", "texas", "cygnet"]
 
 
 logger: Logger = Logger(
     error_counter=Counter(1),
     colorized=False,
-    # log_level=3,
+    log_level=3,
 )
 config: Config = Config("config.json")
 
@@ -139,6 +142,8 @@ def ask_to_update(name):
 
 
 def listen_display(my_callsign=None):
+    if my_callsign is None:
+        my_callsign = config.radio.license
     last_display_time = time.monotonic()
     display_top_10()
     try:
@@ -195,8 +200,8 @@ def listen_display(my_callsign=None):
                                 f"Error: {sender_callsign} is not a configured Cubesat"
                             )
                     elif command == SEND_MESSAGE:
-                        sender_callsign = decoded_message.get("callsign")
-                        if sender_callsign != my_callsign:
+                        recipient_callsign = decoded_message.get("recipient")
+                        if recipient_callsign == my_callsign:
                             message = decoded_message.get("message")
                             print(message)
 
@@ -209,20 +214,43 @@ def listen_display(my_callsign=None):
                                 response_message, separators=(",", ":")
                             ).encode("utf-8")
                             packet_manager.send(encoded_response)
+                    elif command == RECEIVE_NOTIFICATION_BATCH_CONTINUOUS:
+                        print("recieving radiation data...")
+                        if decoded_message.get("callsign") != my_callsign:
+                            data = decoded_message.get("data")
+                            print("______________________\n\n")
+                            print(f"RAD DATA: \n{data} \n")
+                            print("\n\n______________________")
                 except ValueError:
                     logger.error("Failed to decode message")
     except KeyboardInterrupt:
         print("Stopping listener.")
 
 
-def handle_input(name):
+def handle_input(name, my_callsign=None):
+    if my_callsign is None:
+        my_callsign = config.radio.license
     if name[0] == ">":
-        send_message(name)
+        for cube in key_order:
+            if cube != my_callsign:
+                print("________________________________ \n\n\n")
+                print(f"sending to {cube}...")
+                send_message(name, cube, my_callsign)
+    elif name == "GETRAD":
+        response_message = {
+            "current_time": time.monotonic(),
+            "callsign": my_callsign,
+            "command": SEND_NOTIFICATION_BATCH_CONTINUOUS,
+        }
+        encoded_response = json.dumps(response_message, separators=(",", ":")).encode(
+            "utf-8"
+        )
+        packet_manager.send(encoded_response)
     else:
         display_leaderboard_status_from_name(name)
 
 
-def send_message(message, my_callsign=None):
+def send_message(message, cube, my_callsign=None):
     if my_callsign is None:
         my_callsign = config.radio.license
     print("________________________________ \n\n\n")
@@ -231,6 +259,7 @@ def send_message(message, my_callsign=None):
     response_message = {
         "current_time": time.monotonic(),
         "callsign": my_callsign,
+        "recipient": cube,
         "command": SEND_MESSAGE,
         "message": msg,
     }
@@ -239,22 +268,19 @@ def send_message(message, my_callsign=None):
     )
 
     # TODO fix this not retutning False when radio send is False
-    if packet_manager.send(encoded_response):
-        print("________________________________ \n\n\n")
-        print("Message Sent!")
-    else:
-        print("________________________________ \n\n\n")
-        print("Message Failed to Send! Try again")
+    packet_manager.send(encoded_response)
 
     # TO DO check if this can verify from multiple sats
-    received_message = packet_manager.listen(5)
-
-    if received_message is not None:
-        decoded_message = json.loads(received_message.decode("utf-8"))
-        command = decoded_message.get("command")
-        if command == SEND_MESSAGE_AKNOW:
-            recepient = decoded_message.get("callsign")
-            print(f"{recepient} recieved the message")
+    start_time = time.monotonic()
+    while time.monotonic() < (start_time + 10):
+        received_message = packet_manager.listen(1)
+        if received_message is not None:
+            decoded_message = json.loads(received_message.decode("utf-8"))
+            command = decoded_message.get("command")
+            if command == SEND_MESSAGE_AKNOW:
+                recepient = decoded_message.get("callsign")
+                print(f"{recepient} recieved the message")
+                break
 
     print(" \n\n\n________________________________")
 
